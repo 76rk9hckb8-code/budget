@@ -2,310 +2,2259 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Семейный Бюджет</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#F4F7F9">
+    <title>Family Finance — Умный семейный бюджет</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Google Identity Services & Drive API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- PDF.js для реального чтения банковских выписок в браузере -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Tesseract.js для реального OCR распознавания чеков с камеры -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            --success: #10b981;
-            --danger: #f43f5e;
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f8fafc;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --radius: 16px;
+            --bg-main: #F3F6F8;
+            --bg-card: #FFFFFF;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --accent-teal: #0F766E;
+            --accent-teal-light: #14B8A6;
+            --accent-grad: linear-gradient(135deg, #134E4A 0%, #0F766E 50%, #0D9488 100%);
+            --income-color: #10B981;
+            --expense-color: #EF4444;
+            --warning-color: #F59E0B;
+            --border-subtle: rgba(15, 23, 42, 0.06);
+            --shadow-card: 0 10px 30px -10px rgba(15, 23, 42, 0.07), 0 4px 12px -4px rgba(15, 23, 42, 0.03);
+            --shadow-float: 0 20px 40px -15px rgba(15, 118, 110, 0.35);
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); padding-bottom: 100px; }
-        
-        header { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-        h1 { font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-        
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        .card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3); border: 1px solid var(--border); }
-        
-        .balance-card { background: var(--primary-gradient); color: white; border: none; position: relative; overflow: hidden; }
-        .balance-card::after { content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none; }
-        .balance-card h3 { font-size: 0.85rem; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-        .balance-card .amount { font-size: 2.2rem; font-weight: 800; margin: 10px 0; letter-spacing: -0.5px; }
-        
-        .btn { background: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; transition: transform 0.1s ease, opacity 0.2s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
-        .btn:active { transform: scale(0.98); }
-        .btn-success { background: var(--success); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
-        
-        input, select { width: 100%; padding: 12px 16px; margin: 8px 0 18px; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem; background: #0f172a; color: #fff; outline: none; transition: border-color 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); }
-        label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .transaction-item:last-child { border-bottom: none; }
-        .amount-income { color: var(--success); font-weight: 700; }
-        .amount-expense { color: var(--danger); font-weight: 700; }
-        
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0 20px 0; z-index: 100; }
-        .nav-item { text-align: center; color: var(--text-secondary); font-size: 0.65rem; text-decoration: none; cursor: pointer; flex: 1; font-weight: 500; transition: color 0.2s; }
-        .nav-item.active { color: #818cf8; font-weight: 700; }
-        .nav-icon { font-size: 1.2rem; margin-bottom: 2px; display: block; }
-        
-        .sync-status { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: rgba(202, 138, 4, 0.2); color: #facc15; font-weight: 600; border: 1px solid rgba(202, 138, 4, 0.3); }
-        .sync-status.synced { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .advisor-tip { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 16px; border-radius: var(--radius); font-size: 0.9rem; margin-bottom: 16px; color: #a5b4fc; line-height: 1.4; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            padding-top: var(--safe-top);
+            padding-bottom: calc(92px + var(--safe-bottom));
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px 16px;
+            position: sticky;
+            top: 0;
+            background: rgba(243, 246, 248, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 50;
+        }
+
+        .family-avatars {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            border: 2px solid var(--bg-main);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .avatar-1 { background: linear-gradient(135deg, #0F766E, #14B8A6); z-index: 2; }
+        .avatar-2 { background: linear-gradient(135deg, #F59E0B, #D97706); margin-left: -10px; z-index: 1; }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sync-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #E2E8F0;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sync-pill.online { background: #CCFBF1; color: #0F766E; }
+        .sync-pill.syncing { background: #FEF3C7; color: #B45309; }
+        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        .notif-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .notif-btn:active { transform: scale(0.9); }
+        .notif-badge {
+            position: absolute;
+            top: 6px;
+            right: 7px;
+            width: 8px;
+            height: 8px;
+            background: var(--expense-color);
+            border-radius: 50%;
+            border: 1.5px solid #fff;
+            display: none;
+        }
+        .notif-badge.active { display: block; }
+
+        /* Container & Views */
+        .view-container {
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 0 18px;
+        }
+
+        .tab-view {
+            display: none;
+            animation: slideUpFade 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .tab-view.active { display: block; }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(14px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Hero Balance Card */
+        .hero-card {
+            background: var(--accent-grad);
+            border-radius: 26px;
+            padding: 24px;
+            color: #FFFFFF;
+            box-shadow: var(--shadow-float);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero-balance {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 6px 0 4px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hero-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(8px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #A7F3D0;
+            margin-bottom: 20px;
+        }
+
+        .hero-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .hero-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .hero-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Horizontal Accounts Strip */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
+        }
+
+        .section-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-teal);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .accounts-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin: 0 -18px;
+            padding-left: 18px;
+            padding-right: 18px;
+            scrollbar-width: none;
+        }
+        .accounts-scroll::-webkit-scrollbar { display: none; }
+
+        .account-mini-card {
+            min-width: 148px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 14px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .account-mini-card:active { transform: scale(0.96); }
+
+        .acc-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .acc-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .acc-bal {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .acc-owner {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: inline-block;
+            background: #F1F5F9;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        /* Standard White Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 16px;
+        }
+
+        /* Monthly Summary & SVG Chart */
+        .summary-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .month-pill {
+            background: #F1F5F9;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            padding-left: 12px;
+            border-left: 3px solid var(--income-color);
+        }
+        .stat-box.exp { border-left-color: var(--expense-color); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .stat-val { font-size: 19px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+        .chart-wrap {
+            width: 100%;
+            height: 110px;
+            position: relative;
+            margin: 8px 0 14px;
+        }
+
+        .category-bars {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .cat-mini-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: #E2E8F0;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* AI Financial Mentor Banner */
+        .mentor-card {
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            border: 1px solid rgba(15, 118, 110, 0.15);
+            border-radius: 22px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .mentor-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: var(--accent-teal);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(15, 118, 110, 0.25);
+        }
+
+        .mentor-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #134E4A;
+            margin-bottom: 4px;
+        }
+
+        .mentor-text {
+            font-size: 12.5px;
+            line-height: 1.45;
+            color: #115E59;
+        }
+
+        .mentor-action {
+            margin-top: 10px;
+            background: #0F766E;
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .mentor-action:active { transform: scale(0.96); }
+
+        /* Transactions List */
+        .tx-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background 0.15s;
+        }
+        .tx-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .tx-item:first-child { padding-top: 0; }
+
+        .tx-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tx-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            flex-shrink: 0;
+        }
+
+        .tx-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .tx-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tx-tag {
+            background: #F1F5F9;
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .tx-amount {
+            font-size: 15px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
+        .tx-amount.inc { color: var(--income-color); }
+        .tx-amount.exp { color: var(--text-primary); }
+
+        /* Goals Tab */
+        .family-strip {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 4px 0 12px;
+            margin-bottom: 16px;
+        }
+
+        .member-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 68px;
+        }
+
+        .member-avatar {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            position: relative;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+
+        .role-pill {
+            position: absolute;
+            bottom: -4px;
+            background: #334155;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 8px;
+            border: 1.5px solid var(--bg-main);
+        }
+
+        .member-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .goal-card {
+            background: var(--bg-card);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 14px;
+            transition: transform 0.2s;
+        }
+
+        .goal-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .goal-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .goal-info { flex: 1; }
+        .goal-name { font-size: 15.5px; font-weight: 700; color: var(--text-primary); }
+        .goal-amounts { font-size: 13px; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
+        .goal-pct { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+
+        .goal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 12px;
+        }
+
+        .goal-linked-acc {
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .goal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--accent-teal);
+            font-weight: 700;
+            font-size: 12.5px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 8px;
+        }
+        .btn-text:active { background: #F0FDFA; }
+
+        /* Bottom Tab Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 6px calc(8px + var(--safe-bottom));
+            z-index: 90;
+        }
+
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 10.5px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: color 0.2s, transform 0.15s;
+        }
+
+        .nav-tab:active { transform: scale(0.92); }
+        .nav-tab.active { color: var(--accent-teal); }
+        .nav-tab svg { width: 22px; height: 22px; stroke-width: 2.1; }
+
+        /* Bottom Sheet Modals */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .bottom-sheet {
+            background: var(--bg-card);
+            width: 100%;
+            max-width: 540px;
+            border-radius: 28px 28px 0 0;
+            padding: 14px 22px calc(28px + var(--safe-bottom));
+            transform: translateY(100%);
+            transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.open .bottom-sheet {
+            transform: translateY(0);
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 5px;
+            background: #CBD5E1;
+            border-radius: 99px;
+            margin: 0 auto 18px;
+        }
+
+        .sheet-title {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 13px 15px;
+            border-radius: 14px;
+            border: 1.5px solid #E2E8F0;
+            background: #F8FAFC;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-teal);
+            background: #fff;
+        }
+
+        .segmented-control {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #F1F5F9;
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .seg-btn {
+            padding: 9px;
+            border: none;
+            background: none;
+            border-radius: 11px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .seg-btn.active {
+            background: #fff;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            border-radius: 16px;
+            border: none;
+            background: var(--accent-grad);
+            color: #fff;
+            font-size: 15.5px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.28);
+            transition: transform 0.15s;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+
+        .btn-danger-outline {
+            width: 100%;
+            padding: 13px;
+            border-radius: 14px;
+            border: 1.5px solid #FECACA;
+            background: #FEF2F2;
+            color: var(--expense-color);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: calc(16px + var(--safe-top));
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #0F172A;
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+            z-index: 300;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 90%;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Scanner & PDF Dropzones */
+        .upload-zone {
+            border: 2px dashed #CBD5E1;
+            border-radius: 20px;
+            padding: 26px 18px;
+            text-align: center;
+            background: #F8FAFC;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .upload-zone:active {
+            border-color: var(--accent-teal);
+            background: #F0FDFA;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>⚡️ Family Wallet</h1>
-        <div id="syncIndicator" class="sync-status">Офлайн режим</div>
+    <!-- Toast Banner -->
+    <div id="toast" class="toast">✅ Операция сохранена</div>
+
+    <!-- Top App Header -->
+    <header class="app-header">
+        <div class="family-avatars">
+            <div class="avatar-circle avatar-1" title="Вы">Я</div>
+            <div class="avatar-circle avatar-2" title="Супруга">Ж</div>
+        </div>
+        <div class="header-title">Семейный бюджет</div>
+        <div class="header-actions">
+            <div id="syncPill" class="sync-pill" onclick="triggerGoogleSync()">
+                <span class="sync-dot"></span>
+                <span id="syncText">Офлайн</span>
+            </div>
+            <button class="notif-btn" onclick="openNotifications()" aria-label="Уведомления">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <span id="notifBadge" class="notif-badge active"></span>
+            </button>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- ВКЛАДКА: ГЛАВНАЯ -->
-        <div id="tab-home" class="tab-content active">
-            <div class="card balance-card">
-                <h3>Общий баланс семьи</h3>
-                <div class="amount" id="totalBalance">0 ₽</div>
-                <div class="flex-between" style="font-size: 0.85rem; opacity: 0.9; display: flex; justify-content: space-between;">
-                    <span>Доходы: <strong id="totalIncome">0 ₽</strong></span>
-                    <span>Расходы: <strong id="totalExpense">0 ₽</strong></span>
+    <main class="view-container">
+        
+        <!-- ==================== TAB 1: ГЛАВНАЯ ==================== -->
+        <section id="view-home" class="tab-view active">
+            
+            <!-- Hero Card -->
+            <div class="hero-card">
+                <div class="hero-label">
+                    <span>Общий баланс семьи</span>
+                    <span id="currentUserBadge" style="background:rgba(255,255,255,0.18); padding:2px 8px; border-radius:8px; font-size:11px; cursor:pointer;" onclick="toggleActiveUser()">Автор: Вы ⇄</span>
+                </div>
+                <div class="hero-balance" id="heroTotalBalance">0 ₽</div>
+                <div class="hero-trend" id="heroTrendText">↗ Норма сбережений: 0%</div>
+                
+                <div class="hero-actions">
+                    <button class="hero-btn" onclick="openTxModal('expense')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Добавить трату
+                    </button>
+                    <button class="hero-btn" onclick="openTransferModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                        Перевод
+                    </button>
                 </div>
             </div>
 
-            <div class="advisor-tip">
-                💡 <strong>Совет аналитика:</strong> Откладывайте минимум 20% с каждого поступления для формирования подушки безопасности.
+            <!-- Счета и карты (Горизонтальный скролл) -->
+            <div class="section-header" style="margin-top: 6px;">
+                <span class="section-title">Счета и наличные</span>
+                <button class="section-link" onclick="openAccountModal()">+ Счет</button>
+            </div>
+            <div class="accounts-scroll" id="accountsStrip"></div>
+
+            <!-- Умный финансовый наставник -->
+            <div class="mentor-card" id="mentorBanner" style="margin-top: 14px;">
+                <div class="mentor-icon">🧠</div>
+                <div>
+                    <div class="mentor-title">Совет финансового аналитика</div>
+                    <div class="mentor-text" id="mentorAdviceText">Загрузите выписку или добавьте доход, чтобы я рассчитал идеальную сумму для вашей подушки безопасности.</div>
+                    <button class="mentor-action" onclick="switchTab('advisor')">Открыть план распределений →</button>
+                </div>
+            </div>
+
+            <!-- Сводка за месяц и график -->
+            <div class="card">
+                <div class="summary-top">
+                    <span class="section-title">Сводка за месяц</span>
+                    <span class="month-pill" id="currentMonthLabel">Ноябрь 2026</span>
+                </div>
+                
+                <div class="summary-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Доходы</div>
+                        <div class="stat-val" id="monthIncome">0 ₽</div>
+                    </div>
+                    <div class="stat-box exp">
+                        <div class="stat-label">Расходы</div>
+                        <div class="stat-val" id="monthExpense">0 ₽</div>
+                    </div>
+                </div>
+
+                <!-- График динамики -->
+                <div class="chart-wrap">
+                    <svg id="trendSvg" width="100%" height="100%" viewBox="0 0 320 100" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#10B981" stop-opacity="0.25"/>
+                                <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path id="chartArea" d="M0,80 Q80,65 160,50 T320,25 L320,100 L0,100 Z" fill="url(#incGrad)"/>
+                        <path id="chartIncLine" d="M0,80 Q80,65 160,50 T320,25" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+                        <path id="chartExpLine" d="M0,85 Q80,75 160,68 T320,55" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-dasharray="4 3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <div class="category-bars" id="topCategoriesBars"></div>
+            </div>
+
+            <!-- Последние транзакции -->
+            <div class="card">
+                <div class="summary-top">
+                    <span class="section-title">Последние операции</span>
+                    <button class="section-link" onclick="switchTab('activity')">Все</button>
+                </div>
+                <div id="recentTxList"></div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: ЦЕЛИ И СЧЕТА ==================== -->
+        <section id="view-goals" class="tab-view">
+            <div class="section-header" style="margin-top: 4px;">
+                <span class="section-title">Участники семьи (Равные права)</span>
+            </div>
+            <div class="family-strip">
+                <div class="member-item">
+                    <div class="member-avatar" style="background: linear-gradient(135deg, #0F766E, #14B8A6);">
+                        Я
+                        <span class="role-pill">Админ</span>
+                    </div>
+                    <span class="member-name">Вы</span>
+                </div>
+                <div class="member-item">
+                    <div class="member-avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                        Ж
+                        <span class="role-pill">Админ</span>
+                    </div>
+                    <span class="member-name">Супруга</span>
+                </div>
+                <div class="member-item" onclick="shareGoogleDriveLink()" style="cursor:pointer;">
+                    <div class="member-avatar" style="background: #E2E8F0; color: #475569; border: 2px dashed #94A3B8; box-shadow:none;">
+                        +
+                    </div>
+                    <span class="member-name">Доступ</span>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <span class="section-title">Совместные цели и накопления</span>
+                <button class="section-link" onclick="openGoalModal()">+ Новая цель</button>
+            </div>
+            <div id="goalsListContainer"></div>
+        </section>
+
+        <!-- ==================== TAB 3: СКАНЕР И ВЫПИСКИ ==================== -->
+        <section id="view-advisor" class="tab-view">
+            <!-- Сканер чеков -->
+            <div class="card">
+                <div class="section-title" style="margin-bottom: 6px;">📷 Умный сканер чеков</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                    Сфотографируйте кассовый чек — приложение распознает итоговую сумму и автоматически подберет категорию траты.
+                </p>
+                <div class="upload-zone">
+                    <input type="file" accept="image/*" capture="environment" id="receiptFileInput" onchange="handleReceiptScan(event)">
+                    <div style="font-size: 28px; margin-bottom: 6px;">📸</div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Снять чек или выбрать фото</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Поддерживается распознавание суммы (ИТОГО)</div>
+                </div>
+                <div id="ocrProgressBox" style="margin-top: 14px;"></div>
+            </div>
+
+            <!-- Анализ банковской выписки PDF -->
+            <div class="card">
+                <div class="section-title" style="margin-bottom: 6px;">📄 Анализ банковской выписки (PDF)</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                    Загрузите справку о движении средств из банка (Сбер, Т-Банк, Альфа). Аналитик изучит ваши реальные траты и рассчитает бюджет.
+                </p>
+                <div class="upload-zone">
+                    <input type="file" accept="application/pdf" id="pdfStatementInput" onchange="handlePdfStatement(event)">
+                    <div style="font-size: 28px; margin-bottom: 6px;">📊</div>
+                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Загрузить PDF выписку</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Локальный разбор без передачи данных третьим лицам</div>
+                </div>
+                <div id="pdfAnalysisResult" style="margin-top: 14px;"></div>
+            </div>
+
+            <!-- Интерактивный распределитель дохода (Правило 50/30/20 + Подушка) -->
+            <div class="card">
+                <div class="section-title" style="margin-bottom: 6px;">🎓 Калькулятор финансовой грамотности</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                    Введите сумму нового поступления (зарплаты), и наставник подскажет, на какие счета и цели её распределить прямо сейчас.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Сумма поступления (₽)</label>
+                    <input type="number" id="salarySplitInput" class="form-input" placeholder="Например: 100000" oninput="calculateSmartSplit()">
+                </div>
+                <div id="smartSplitOutput"></div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: ИСТОРИЯ И ЛИМИТЫ ==================== -->
+        <section id="view-activity" class="tab-view">
+            <div class="section-header" style="margin-top: 4px;">
+                <span class="section-title">Лимиты по категориям</span>
+                <button class="section-link" onclick="openLimitModal()">Настроить</button>
+            </div>
+            <div class="card" id="categoryLimitsList"></div>
+
+            <div class="section-header">
+                <span class="section-title">Все операции семьи</span>
+            </div>
+            <div class="card" id="fullTxList"></div>
+        </section>
+
+        <!-- ==================== TAB 5: НАСТРОЙКИ И GOOGLE DRIVE ==================== -->
+        <section id="view-settings" class="tab-view">
+            <div class="card">
+                <div class="section-title" style="margin-bottom: 6px;">☁️ Синхронизация через Google Диск</div>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 16px;">
+                    База данных хранится в файле <code>family_budget_db.json</code> на вашем Google Диске. Войдите под одним Google-аккаунтом на обоих iPhone, чтобы бюджет обновлялся автоматически.
+                </p>
+                
+                <div class="form-group">
+                    <label class="form-label">Google OAuth Client ID (для прямой API синхронизации)</label>
+                    <input type="text" id="googleClientIdInput" class="form-input" placeholder="Вставьте Client ID из Google Cloud (опционально)">
+                </div>
+
+                <button class="btn-primary" onclick="connectGoogleDrive()" style="margin-bottom: 10px;">
+                    🔑 Войти через Google и синхронизировать
+                </button>
+                <div id="googleSyncDetails" style="font-size: 12px; color: var(--text-secondary); text-align: center;"></div>
             </div>
 
             <div class="card">
-                <h3 style="font-size: 1rem; margin-bottom: 14px; color: #fff;">Новая операция</h3>
-                <form id="txForm" onsubmit="addTransaction(event)">
-                    <label>Тип</label>
-                    <select id="txType">
-                        <option value="expense">📉 Расход</option>
-                        <option value="income">📈 Доход</option>
-                    </select>
+                <div class="section-title" style="margin-bottom: 6px;">🔄 Ручной обмен / Резервная копия</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+                    Вы также можете мгновенно отправить файл базы супруге в Telegram/WhatsApp или импортировать его.
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="hero-btn" style="background:#F1F5F9; color:var(--text-primary); border-color:#E2E8F0;" onclick="exportDatabaseFile()">
+                        📤 Экспорт JSON
+                    </button>
+                    <label class="hero-btn" style="background:#F1F5F9; color:var(--text-primary); border-color:#E2E8F0; margin:0; cursor:pointer;">
+                        📥 Импорт JSON
+                        <input type="file" accept=".json" style="display:none;" onchange="importDatabaseFile(event)">
+                    </label>
+                </div>
+            </div>
+        </section>
 
-                    <label>Сумма (₽)</label>
-                    <input type="number" id="txAmount" placeholder="0" required>
+    </main>
 
-                    <label>Категория</label>
-                    <select id="txCategory">
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-tab active" data-tab="home" onclick="switchTab('home')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Главная
+        </button>
+        <button class="nav-tab" data-tab="goals" onclick="switchTab('goals')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+            Цели
+        </button>
+        <button class="nav-tab" data-tab="advisor" onclick="switchTab('advisor')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            Сканер & ИИ
+        </button>
+        <button class="nav-tab" data-tab="activity" onclick="switchTab('activity')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            Лимиты
+        </button>
+        <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            Диск
+        </button>
+    </nav>
+
+    <!-- ==================== MODALS (BOTTOM SHEETS) ==================== -->
+
+    <!-- 1. Modal: Добавить транзакцию -->
+    <div id="modal-tx" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-tx')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span>Новая операция</span>
+                <button class="btn-text" onclick="closeModal('modal-tx')">Закрыть</button>
+            </div>
+            <div class="segmented-control">
+                <button type="button" class="seg-btn active" id="seg-exp" onclick="setTxType('expense')">Расход</button>
+                <button type="button" class="seg-btn" id="seg-inc" onclick="setTxType('income')">Доход</button>
+            </div>
+            <form onsubmit="submitTransaction(event)">
+                <input type="hidden" id="txTypeField" value="expense">
+                <div class="form-group">
+                    <label class="form-label">Сумма (₽)</label>
+                    <input type="number" id="txAmountField" class="form-input" placeholder="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Счет / Карта</label>
+                    <select id="txAccountField" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select id="txCategoryField" class="form-select">
                         <option value="Продукты">🛒 Продукты</option>
-                        <option value="ЖКХ и Дом">🏠 ЖКХ и Дом</option>
-                        <option value="Транспорт">🚗 Транспорт</option>
-                        <option value="Развлечения">🎉 Развлечения</option>
-                        <option value="Подушка безопасности">🛡️ Подушка безопасности</option>
-                        <option value="Зарплата">💰 Зарплата</option>
+                        <option value="ЖКХ и Связь">🏠 ЖКХ и Связь</option>
+                        <option value="Транспорт">🚕 Транспорт</option>
+                        <option value="Кафе и Доставка">☕ Кафе и Доставка</option>
+                        <option value="Здоровье и Аптека">💊 Здоровье и Аптека</option>
+                        <option value="Покупки и Одежда">🛍️ Покупки и Одежда</option>
+                        <option value="Развлечения">🎬 Развлечения</option>
+                        <option value="Зарплата / Аванс">💰 Зарплата / Аванс</option>
+                        <option value="Пополнение цели">🎯 В копилку цели</option>
                     </select>
-
-                    <button type="submit" class="btn">Добавить</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3 style="font-size: 1rem; margin-bottom: 14px; color: #fff;">Последние операции</h3>
-                <div id="txList"></div>
-            </div>
-        </div>
-
-        <!-- ВКЛАДКА: ЦЕЛИ -->
-        <div id="tab-goals" class="tab-content">
-            <div class="card">
-                <h3 style="color: #fff; margin-bottom: 6px;">🛡️ Финансовая подушка</h3>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">Цель: 3 месяца жизни (150 000 ₽)</p>
-                <div style="background: var(--border); border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 10px;">
-                    <div id="cushionBar" style="background: var(--success); width: 0%; height: 100%; transition: width 0.5s ease;"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                    <span id="cushionCurrent" style="color: var(--text-secondary);">0 ₽ накоплено</span>
-                    <strong id="cushionPercent" style="color: #fff;">0%</strong>
+                <div class="form-group">
+                    <label class="form-label">Комментарий (необязательно)</label>
+                    <input type="text" id="txNoteField" class="form-input" placeholder="Например: ВкусВилл, ужин">
                 </div>
-            </div>
-
-            <div class="card">
-                <h3 style="color: #fff; margin-bottom: 6px;">✈️ Отпуск 2027</h3>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">Цель: 100 000 ₽</p>
-                <div style="background: var(--border); border-radius: 8px; height: 10px; overflow: hidden; margin-bottom: 10px;">
-                    <div id="vacationBar" style="background: var(--primary); width: 0%; height: 100%; transition: width 0.5s ease;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                    <span id="vacationCurrent" style="color: var(--text-secondary);">0 ₽ накоплено</span>
-                    <strong id="vacationPercent" style="color: #fff;">0%</strong>
-                </div>
-            </div>
-        </div>
-
-        <!-- ВКЛАДКА: СКАНЕР И PDF -->
-        <div id="tab-scanner" class="tab-content">
-            <div class="card">
-                <h3 style="color: #fff; margin-bottom: 8px;">📷 Сканер чеков</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">Сфотографируйте чек для автоматического распознавания.</p>
-                <input type="file" accept="image/*" capture="environment" id="receiptInput" onchange="processReceipt(event)">
-                <div id="scanResult" style="margin-top: 12px;"></div>
-            </div>
-
-            <div class="card">
-                <h3 style="color: #fff; margin-bottom: 8px;">📊 Анализ выписки (PDF)</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">Загрузите PDF-выписку из банка для оценки средних расходов.</p>
-                <input type="file" accept=".pdf" id="pdfInput" onchange="processPDF(event)">
-                <div id="pdfResult" style="margin-top: 12px; font-size: 0.85rem;"></div>
-            </div>
-        </div>
-
-        <!-- ВКЛАДКА: НАСТРОЙКИ -->
-        <div id="tab-settings" class="tab-content">
-            <div class="card">
-                <h3 style="color: #fff; margin-bottom: 8px;">☁️ Общий доступ & Облако</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Синхронизируйте данные с Google Диском для совместного доступа с семьей.</p>
-                <button class="btn" onclick="syncWithGoogleDrive()">Синхронизировать</button>
-                <div id="driveStatus" style="margin-top: 12px; font-size: 0.85rem;"></div>
-            </div>
+                <button type="submit" class="btn-primary">Сохранить операцию</button>
+            </form>
         </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="switchTab('home', this)"><span class="nav-icon">🏠</span>Главная</div>
-        <div class="nav-item" onclick="switchTab('goals', this)"><span class="nav-icon">🎯</span>Цели</div>
-        <div class="nav-item" onclick="switchTab('scanner', this)"><span class="nav-icon">📷</span>Сканер</div>
-        <div class="nav-item" onclick="switchTab('settings', this)"><span class="nav-icon">⚙️</span>Облако</div>
+    <!-- 2. Modal: Перевод между счетами / На цель -->
+    <div id="modal-transfer" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-transfer')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span>Перевод между счетами</span>
+                <button class="btn-text" onclick="closeModal('modal-transfer')">Закрыть</button>
+            </div>
+            <form onsubmit="submitTransfer(event)">
+                <div class="form-group">
+                    <label class="form-label">Откуда списать</label>
+                    <select id="trFromAccount" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Куда зачислить (Счет или Копилка цели)</label>
+                    <select id="trToAccount" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма перевода (₽)</label>
+                    <input type="number" id="trAmount" class="form-input" placeholder="0" step="any" required>
+                </div>
+                <button type="submit" class="btn-primary">Выполнить перевод</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Modal: Создание / Редактирование Счета -->
+    <div id="modal-account" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-account')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span id="accountModalTitle">Новый счет или карта</span>
+                <button class="btn-text" onclick="closeModal('modal-account')">Закрыть</button>
+            </div>
+            <form onsubmit="submitAccount(event)">
+                <input type="hidden" id="editAccountId" value="">
+                <div class="form-group">
+                    <label class="form-label">Название счета</label>
+                    <input type="text" id="accNameInput" class="form-input" placeholder="Например: Карта Т-Банк, Наличные" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Текущий баланс (₽)</label>
+                    <input type="number" id="accBalanceInput" class="form-input" placeholder="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Владелец</label>
+                    <select id="accOwnerInput" class="form-select">
+                        <option value="Общий">Общий семейный</option>
+                        <option value="Вы">Мой счет</option>
+                        <option value="Супруга">Счет супруги</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Иконка</label>
+                    <select id="accIconInput" class="form-select">
+                        <option value="💳">💳 Банковская карта</option>
+                        <option value="💵">💵 Наличные</option>
+                        <option value="🏦">🏦 Накопительный счет / Вклад</option>
+                        <option value="🛡️">🛡️ Счет подушки безопасности</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Сохранить счет</button>
+                <button type="button" id="deleteAccountBtn" class="btn-danger-outline" style="display:none;" onclick="deleteCurrentAccount()">Удалить счет</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Modal: Создание / Редактирование Цели -->
+    <div id="modal-goal" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-goal')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span id="goalModalTitle">Редактировать цель</span>
+                <button class="btn-text" onclick="closeModal('modal-goal')">Закрыть</button>
+            </div>
+            <form onsubmit="submitGoal(event)">
+                <input type="hidden" id="editGoalId" value="">
+                <div class="form-group">
+                    <label class="form-label">Название цели</label>
+                    <input type="text" id="goalNameInput" class="form-input" placeholder="Например: Финансовая подушка" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Целевая сумма (₽)</label>
+                    <input type="number" id="goalTargetInput" class="form-input" placeholder="300000" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Уже накоплено (₽)</label>
+                    <input type="number" id="goalSavedInput" class="form-input" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Привязанный счет хранения</label>
+                    <select id="goalAccountSelect" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Рекомендуемый % от доходов</label>
+                    <input type="number" id="goalPercentInput" class="form-input" placeholder="15" min="1" max="100" value="15">
+                </div>
+                <button type="submit" class="btn-primary">Сохранить цель</button>
+                <button type="button" id="deleteGoalBtn" class="btn-danger-outline" style="display:none;" onclick="deleteCurrentGoal()">Удалить цель</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Modal: Быстрое пополнение цели -->
+    <div id="modal-add-funds" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-add-funds')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span id="addFundsGoalTitle">Пополнить цель</span>
+                <button class="btn-text" onclick="closeModal('modal-add-funds')">Закрыть</button>
+            </div>
+            <form onsubmit="submitAddFunds(event)">
+                <input type="hidden" id="addFundsGoalId">
+                <div class="form-group">
+                    <label class="form-label">Списать со счета</label>
+                    <select id="addFundsFromAcc" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма пополнения (₽)</label>
+                    <input type="number" id="addFundsAmount" class="form-input" placeholder="5000" required>
+                </div>
+                <button type="submit" class="btn-primary">Отложить в цель</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. Modal: Уведомления -->
+    <div id="modal-notifs" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-notifs')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span>Уведомления и контроль лимитов</span>
+                <button class="btn-text" onclick="closeModal('modal-notifs')">Закрыть</button>
+            </div>
+            <div id="notificationsContainer"></div>
+        </div>
+    </div>
+
+    <!-- 7. Modal: Настройка лимитов -->
+    <div id="modal-limits" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-limits')">
+        <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">
+                <span>Месячные лимиты трат</span>
+                <button class="btn-text" onclick="closeModal('modal-limits')">Закрыть</button>
+            </div>
+            <form onsubmit="submitLimits(event)">
+                <div class="form-group">
+                    <label class="form-label">🛒 Продукты (₽ / мес)</label>
+                    <input type="number" id="lim-Продукты" class="form-input" value="35000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">☕ Кафе и Доставка (₽ / мес)</label>
+                    <input type="number" id="lim-Кафе и Доставка" class="form-input" value="12000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">🚕 Транспорт (₽ / мес)</label>
+                    <input type="number" id="lim-Транспорт" class="form-input" value="10000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">🎬 Развлечения (₽ / мес)</label>
+                    <input type="number" id="lim-Развлечения" class="form-input" value="10000">
+                </div>
+                <button type="submit" class="btn-primary">Сохранить лимиты</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('family_budget_db')) || {
-            transactions: [],
-            cushion: 15000,
-            vacation: 10000
+        // ==================== СОСТОЯНИЕ И ДАННЫЕ (OFFLINE-FIRST) ====================
+        const DEFAULT_DB = {
+            version: 2,
+            activeUser: 'Вы',
+            googleClientId: '',
+            lastSynced: null,
+            accounts: [
+                { id: 'acc_1', name: 'Карта Мужа', balance: 64500, owner: 'Вы', icon: '💳', color: '#E0F2FE' },
+                { id: 'acc_2', name: 'Карта Жены', balance: 48200, owner: 'Супруга', icon: '💳', color: '#FCE7F3' },
+                { id: 'acc_3', name: 'Наличные', balance: 15000, owner: 'Общий', icon: '💵', color: '#DCFCE7' },
+                { id: 'acc_4', name: 'Сейф-счет (Подушка)', balance: 180000, owner: 'Общий', icon: '🛡️', color: '#CCFBF1' }
+            ],
+            goals: [
+                { id: 'goal_1', name: 'Подушка безопасности (6 мес)', target: 300000, saved: 180000, linkedAccountId: 'acc_4', percent: 20, icon: '🛡️', color: '#0F766E' },
+                { id: 'goal_2', name: 'Семейный отпуск', target: 150000, saved: 52000, linkedAccountId: 'acc_4', percent: 10, icon: '✈️', color: '#0284C7' }
+            ],
+            limits: {
+                'Продукты': 35000,
+                'Кафе и Доставка': 12000,
+                'Транспорт': 10000,
+                'Развлечения': 10000
+            },
+            transactions: [
+                { id: 101, type: 'expense', amount: 3450, category: 'Продукты', accountId: 'acc_1', note: 'ВкусВилл', author: 'Вы', date: new Date().toISOString() },
+                { id: 102, type: 'income', amount: 115000, category: 'Зарплата / Аванс', accountId: 'acc_1', note: 'Основная зарплата', author: 'Вы', date: new Date().toISOString() },
+                { id: 103, type: 'expense', amount: 1890, category: 'Кафе и Доставка', accountId: 'acc_2', note: 'Кофейня и завтрак', author: 'Супруга', date: new Date().toISOString() }
+            ],
+            notifications: [
+                { id: 1, title: 'Добро пожаловать!', text: 'Настройте счета и цели — я буду подсказывать, сколько откладывать с каждого дохода.', time: 'Сегодня' }
+            ]
         };
 
-        function saveLocal() {
-            localStorage.setItem('family_budget_db', JSON.stringify(db));
-            updateUI();
+        let state = JSON.parse(localStorage.getItem('family_finance_pro_v2')) || DEFAULT_DB;
+        let driveFileId = localStorage.getItem('gdrive_file_id') || null;
+        let googleAccessToken = null;
+
+        function saveState(triggerCloud = true) {
+            localStorage.setItem('family_finance_pro_v2', JSON.stringify(state));
+            renderAll();
+            if (triggerCloud && googleAccessToken && navigator.onLine) {
+                uploadToGoogleDrive();
+            }
         }
 
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            element.classList.add('active');
+        function formatMoney(num) {
+            return Math.round(num).toLocaleString('ru-RU') + ' ₽';
         }
 
-        function addTransaction(e) {
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // ==================== НАВИГАЦИЯ И МОДАЛЬНЫЕ ОКНА ====================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + tabName).classList.add('active');
+            document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function closeModalOnBg(e, id) {
+            if (e.target.id === id) closeModal(id);
+        }
+
+        function toggleActiveUser() {
+            state.activeUser = state.activeUser === 'Вы' ? 'Супруга' : 'Вы';
+            saveState(false);
+            showToast(`Активный профиль: ${state.activeUser}`);
+        }
+
+        // ==================== ОТРИСОВКА ИНТЕРФЕЙСА ====================
+        function renderAll() {
+            document.getElementById('currentUserBadge').innerText = `Автор: ${state.activeUser} ⇄`;
+            if (state.googleClientId) {
+                document.getElementById('googleClientIdInput').value = state.googleClientId;
+            }
+
+            // 1. Общий баланс
+            const totalBalance = state.accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+            document.getElementById('heroTotalBalance').innerText = formatMoney(totalBalance);
+
+            // 2. Счета (горизонтальная лента)
+            const accStrip = document.getElementById('accountsStrip');
+            accStrip.innerHTML = state.accounts.map(acc => `
+                <div class="account-mini-card" onclick="openAccountModal('${acc.id}')">
+                    <div class="acc-icon" style="background:${acc.color || '#E0F2FE'};">${acc.icon}</div>
+                    <div class="acc-name">${acc.name}</div>
+                    <div class="acc-bal">${formatMoney(acc.balance)}</div>
+                    <span class="acc-owner">${acc.owner}</span>
+                </div>
+            `).join('');
+
+            // 3. Доходы и расходы за текущий месяц
+            const now = new Date();
+            const monthTxs = state.transactions.filter(t => {
+                const d = new Date(t.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+
+            const monthInc = monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+            const monthExp = monthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+
+            document.getElementById('monthIncome').innerText = formatMoney(monthInc);
+            document.getElementById('monthExpense').innerText = formatMoney(monthExp);
+
+            const savingsRate = monthInc > 0 ? Math.max(0, Math.round(((monthInc - monthExp) / monthInc) * 100)) : 0;
+            document.getElementById('heroTrendText').innerText = `↗ Норма сбережений: ${savingsRate}% (цель ≥ 20%)`;
+
+            // 4. Прогресс по топ-категориям
+            const catTotals = {};
+            monthTxs.filter(t => t.type === 'expense').forEach(t => {
+                catTotals[t.category] = (catTotals[t.category] || 0) + Number(t.amount);
+            });
+
+            const barsContainer = document.getElementById('topCategoriesBars');
+            const trackedCats = Object.keys(state.limits).slice(0, 2);
+            barsContainer.innerHTML = trackedCats.map(cat => {
+                const spent = catTotals[cat] || 0;
+                const limit = state.limits[cat] || 20000;
+                const pct = Math.min(100, Math.round((spent / limit) * 100));
+                const barColor = pct > 90 ? '#EF4444' : (pct > 70 ? '#F59E0B' : '#0F766E');
+                return `
+                    <div>
+                        <div class="cat-mini-head">
+                            <span>${cat}</span>
+                            <span style="color:${barColor};">${pct}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width:${pct}%; background:${barColor};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 5. Умный совет аналитика
+            updateMentorAdvice(monthInc, monthExp, catTotals);
+
+            // 6. Последние операции (Главная) и полный список
+            const renderTxRow = (tx) => {
+                const acc = state.accounts.find(a => a.id === tx.accountId);
+                const accName = acc ? acc.name : 'Счет';
+                const isInc = tx.type === 'income';
+                const emoji = tx.category.split(' ')[0] || (isInc ? '💰' : '💸');
+                const cleanCat = tx.category.replace(/^[^\s]+\s/, '');
+                const dateStr = new Date(tx.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+
+                return `
+                    <div class="tx-item">
+                        <div class="tx-left">
+                            <div class="tx-icon" style="background:${isInc ? '#DCFCE7' : '#F1F5F9'};">${emoji}</div>
+                            <div>
+                                <div class="tx-title">${tx.note || cleanCat}</div>
+                                <div class="tx-meta">
+                                    <span>${dateStr}</span>
+                                    <span class="tx-tag">${accName}</span>
+                                    <span class="tx-tag">${tx.author || 'Вы'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tx-amount ${isInc ? 'inc' : 'exp'}">
+                            ${isInc ? '+' : '-'}${formatMoney(tx.amount)}
+                        </div>
+                    </div>
+                `;
+            };
+
+            document.getElementById('recentTxList').innerHTML = state.transactions.slice(0, 5).map(renderTxRow).join('') || '<p style="color:var(--text-muted); font-size:13px;">Операций пока нет</p>';
+            document.getElementById('fullTxList').innerHTML = state.transactions.map(renderTxRow).join('') || '<p style="color:var(--text-muted); font-size:13px;">Операций пока нет</p>';
+
+            // 7. Цели (Goals)
+            const goalsContainer = document.getElementById('goalsListContainer');
+            goalsContainer.innerHTML = state.goals.map(g => {
+                const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
+                const linkedAcc = state.accounts.find(a => a.id === g.linkedAccountId);
+                return `
+                    <div class="goal-card">
+                        <div class="goal-top">
+                            <div class="goal-icon" style="background:#F0FDFA;">${g.icon || '🎯'}</div>
+                            <div class="goal-info">
+                                <div class="goal-name">${g.name}</div>
+                                <div class="goal-amounts">${formatMoney(g.saved)} из ${formatMoney(g.target)}</div>
+                            </div>
+                            <div class="goal-pct">${pct}%</div>
+                        </div>
+                        <div class="progress-track" style="height:8px;">
+                            <div class="progress-fill" style="width:${pct}%; background:${g.color || '#0F766E'};"></div>
+                        </div>
+                        <div class="goal-footer">
+                            <div class="goal-linked-acc">
+                                🔗 Счет: <strong>${linkedAcc ? linkedAcc.name : 'Не привязан'}</strong> (${g.percent || 10}% от дохода)
+                            </div>
+                            <div class="goal-actions">
+                                <button class="btn-text" onclick="openGoalModal('${g.id}')">Изменить</button>
+                                <button class="btn-text" style="background:#F0FDFA;" onclick="openAddFundsModal('${g.id}')">+ Пополнить</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 8. Лимиты по категориям
+            const limitsContainer = document.getElementById('categoryLimitsList');
+            limitsContainer.innerHTML = Object.entries(state.limits).map(([cat, limit]) => {
+                const spent = catTotals[cat] || 0;
+                const pct = Math.min(100, Math.round((spent / limit) * 100));
+                const over = spent > limit;
+                return `
+                    <div style="margin-bottom: 14px;">
+                        <div class="cat-mini-head">
+                            <span>${cat}</span>
+                            <span style="color:${over ? '#EF4444' : 'var(--text-secondary)'};">${formatMoney(spent)} / ${formatMoney(limit)}</span>
+                        </div>
+                        <div class="progress-track" style="height:7px;">
+                            <div class="progress-fill" style="width:${pct}%; background:${over ? '#EF4444' : '#0F766E'};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateNetworkBadge();
+        }
+
+        function updateMentorAdvice(inc, exp, catTotals) {
+            const adviceEl = document.getElementById('mentorAdviceText');
+            const cushion = state.goals[0];
+            if (inc > 0 && cushion) {
+                const recSave = Math.round(inc * (cushion.percent / 100));
+                adviceEl.innerHTML = `С вашего дохода <strong>${formatMoney(inc)}</strong> рекомендую перевести <strong>${formatMoney(recSave)}</strong> (${cushion.percent}%) на счет «${cushion.name}».`;
+            } else if (exp > inc && inc > 0) {
+                adviceEl.innerHTML = `Внимание: расходы превысили доходы на <strong>${formatMoney(exp - inc)}</strong>. Проверьте категорию «Кафе и Доставка» и поставьте лимит.`;
+            }
+        }
+
+        // ==================== ОПЕРАЦИИ И ПЕРЕВОДЫ ====================
+        function populateAccountSelects() {
+            const options = state.accounts.map(a => `<option value="${a.id}">${a.icon} ${a.name} (${formatMoney(a.balance)})</option>`).join('');
+            document.getElementById('txAccountField').innerHTML = options;
+            document.getElementById('trFromAccount').innerHTML = options;
+            document.getElementById('trToAccount').innerHTML = options;
+            document.getElementById('goalAccountSelect').innerHTML = options;
+            document.getElementById('addFundsFromAcc').innerHTML = options;
+        }
+
+        function openTxModal(type) {
+            populateAccountSelects();
+            setTxType(type);
+            document.getElementById('txAmountField').value = '';
+            document.getElementById('txNoteField').value = '';
+            openModal('modal-tx');
+        }
+
+        function setTxType(type) {
+            document.getElementById('txTypeField').value = type;
+            document.getElementById('seg-exp').classList.toggle('active', type === 'expense');
+            document.getElementById('seg-inc').classList.toggle('active', type === 'income');
+        }
+
+        function submitTransaction(e) {
             e.preventDefault();
-            const type = document.getElementById('txType').value;
-            const amount = parseFloat(document.getElementById('txAmount').value);
-            const category = document.getElementById('txCategory').value;
+            const type = document.getElementById('txTypeField').value;
+            const amount = parseFloat(document.getElementById('txAmountField').value);
+            const accountId = document.getElementById('txAccountField').value;
+            const category = document.getElementById('txCategoryField').value;
+            const note = document.getElementById('txNoteField').value.trim();
 
-            const tx = {
+            if (!amount || amount <= 0) return;
+
+            const acc = state.accounts.find(a => a.id === accountId);
+            if (acc) {
+                if (type === 'income') acc.balance += amount;
+                else acc.balance -= amount;
+            }
+
+            state.transactions.unshift({
                 id: Date.now(),
                 type,
                 amount,
                 category,
-                date: new Date().toLocaleDateString()
-            };
+                accountId,
+                note,
+                author: state.activeUser,
+                date: new Date().toISOString()
+            });
 
-            db.transactions.unshift(tx);
-            if (category === 'Подушка безопасности') {
-                if (type === 'income') db.cushion += amount;
-                else db.cushion = Math.max(0, db.cushion - amount);
+            if (type === 'expense') {
+                const cleanCat = category.replace(/^[^\s]+\s/, '');
+                if (state.limits[cleanCat]) {
+                    const now = new Date();
+                    const spent = state.transactions
+                        .filter(t => t.type === 'expense' && t.category.includes(cleanCat) && new Date(t.date).getMonth() === now.getMonth())
+                        .reduce((s, t) => s + t.amount, 0);
+                    if (spent > state.limits[cleanCat]) {
+                        addSystemNotification('⚠️ Превышен лимит!', `Траты в категории «${cleanCat}» достигли ${formatMoney(spent)} при лимите ${formatMoney(state.limits[cleanCat])}.`);
+                    }
+                }
             }
 
-            saveLocal();
-            document.getElementById('txForm').reset();
-            alert('Операция успешно добавлена!');
+            if (type === 'income' && state.goals.length > 0) {
+                const g = state.goals[0];
+                const rec = Math.round(amount * ((g.percent || 20) / 100));
+                addSystemNotification('💡 Рекомендация наставника', `Получен доход ${formatMoney(amount)}. Отложите ${formatMoney(rec)} в цель «${g.name}»!`);
+            }
+
+            saveState();
+            closeModal('modal-tx');
+            showToast(type === 'income' ? '✅ Доход зачислен' : '✅ Расход записан');
         }
 
-        function updateUI() {
-            let income = 0, expense = 0;
-            let listHTML = '';
+        function openTransferModal() {
+            populateAccountSelects();
+            document.getElementById('trAmount').value = '';
+            openModal('modal-transfer');
+        }
 
-            db.transactions.forEach(tx => {
-                if (tx.type === 'income') income += tx.amount;
-                else expense += tx.amount;
+        function submitTransfer(e) {
+            e.preventDefault();
+            const fromId = document.getElementById('trFromAccount').value;
+            const toId = document.getElementById('trToAccount').value;
+            const amount = parseFloat(document.getElementById('trAmount').value);
 
-                listHTML += `
-                    <div class="transaction-item">
-                        <div>
-                            <strong style="font-size: 0.95rem; color: #fff;">${tx.category}</strong>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">${tx.date}</div>
+            if (fromId === toId || !amount || amount <= 0) {
+                showToast('⚠️ Выберите разные счета');
+                return;
+            }
+
+            const fromAcc = state.accounts.find(a => a.id === fromId);
+            const toAcc = state.accounts.find(a => a.id === toId);
+
+            if (fromAcc && toAcc) {
+                fromAcc.balance -= amount;
+                toAcc.balance += amount;
+
+                const linkedGoal = state.goals.find(g => g.linkedAccountId === toId);
+                if (linkedGoal) {
+                    linkedGoal.saved += amount;
+                }
+
+                state.transactions.unshift({
+                    id: Date.now(),
+                    type: 'expense',
+                    amount,
+                    category: '🔄 Перевод',
+                    accountId: fromId,
+                    note: `Перевод → ${toAcc.name}`,
+                    author: state.activeUser,
+                    date: new Date().toISOString()
+                });
+            }
+
+            saveState();
+            closeModal('modal-transfer');
+            showToast('✅ Перевод выполнен');
+        }
+
+        // ==================== УПРАВЛЕНИЕ СЧЕТАМИ ====================
+        function openAccountModal(accountId = null) {
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            if (accountId) {
+                const acc = state.accounts.find(a => a.id === accountId);
+                document.getElementById('accountModalTitle').innerText = 'Редактировать счет';
+                document.getElementById('editAccountId').value = acc.id;
+                document.getElementById('accNameInput').value = acc.name;
+                document.getElementById('accBalanceInput').value = acc.balance;
+                document.getElementById('accOwnerInput').value = acc.owner;
+                document.getElementById('accIconInput').value = acc.icon;
+                deleteBtn.style.display = state.accounts.length > 1 ? 'block' : 'none';
+            } else {
+                document.getElementById('accountModalTitle').innerText = 'Новый счет или карта';
+                document.getElementById('editAccountId').value = '';
+                document.getElementById('accNameInput').value = '';
+                document.getElementById('accBalanceInput').value = '';
+                deleteBtn.style.display = 'none';
+            }
+            openModal('modal-account');
+        }
+
+        function submitAccount(e) {
+            e.preventDefault();
+            const id = document.getElementById('editAccountId').value;
+            const name = document.getElementById('accNameInput').value.trim();
+            const balance = parseFloat(document.getElementById('accBalanceInput').value) || 0;
+            const owner = document.getElementById('accOwnerInput').value;
+            const icon = document.getElementById('accIconInput').value;
+
+            if (id) {
+                const acc = state.accounts.find(a => a.id === id);
+                if (acc) {
+                    acc.name = name;
+                    acc.balance = balance;
+                    acc.owner = owner;
+                    acc.icon = icon;
+                }
+            } else {
+                state.accounts.push({
+                    id: 'acc_' + Date.now(),
+                    name,
+                    balance,
+                    owner,
+                    icon,
+                    color: '#E0F2FE'
+                });
+            }
+
+            saveState();
+            closeModal('modal-account');
+            showToast('✅ Счет сохранен');
+        }
+
+        function deleteCurrentAccount() {
+            const id = document.getElementById('editAccountId').value;
+            state.accounts = state.accounts.filter(a => a.id !== id);
+            saveState();
+            closeModal('modal-account');
+            showToast('🗑️ Счет удален');
+        }
+
+        // ==================== УПРАВЛЕНИЕ ЦЕЛЯМИ ====================
+        function openGoalModal(goalId = null) {
+            populateAccountSelects();
+            const deleteBtn = document.getElementById('deleteGoalBtn');
+            if (goalId) {
+                const g = state.goals.find(item => item.id === goalId);
+                document.getElementById('goalModalTitle').innerText = 'Настройка цели';
+                document.getElementById('editGoalId').value = g.id;
+                document.getElementById('goalNameInput').value = g.name;
+                document.getElementById('goalTargetInput').value = g.target;
+                document.getElementById('goalSavedInput').value = g.saved;
+                document.getElementById('goalAccountSelect').value = g.linkedAccountId || state.accounts[0].id;
+                document.getElementById('goalPercentInput').value = g.percent || 15;
+                deleteBtn.style.display = 'block';
+            } else {
+                document.getElementById('goalModalTitle').innerText = 'Новая финансовая цель';
+                document.getElementById('editGoalId').value = '';
+                document.getElementById('goalNameInput').value = '';
+                document.getElementById('goalTargetInput').value = '';
+                document.getElementById('goalSavedInput').value = '0';
+                document.getElementById('goalPercentInput').value = '10';
+                deleteBtn.style.display = 'none';
+            }
+            openModal('modal-goal');
+        }
+
+        function submitGoal(e) {
+            e.preventDefault();
+            const id = document.getElementById('editGoalId').value;
+            const name = document.getElementById('goalNameInput').value.trim();
+            const target = parseFloat(document.getElementById('goalTargetInput').value);
+            const saved = parseFloat(document.getElementById('goalSavedInput').value) || 0;
+            const linkedAccountId = document.getElementById('goalAccountSelect').value;
+            const percent = parseInt(document.getElementById('goalPercentInput').value) || 10;
+
+            if (id) {
+                const g = state.goals.find(item => item.id === id);
+                if (g) {
+                    g.name = name;
+                    g.target = target;
+                    g.saved = saved;
+                    g.linkedAccountId = linkedAccountId;
+                    g.percent = percent;
+                }
+            } else {
+                state.goals.push({
+                    id: 'goal_' + Date.now(),
+                    name,
+                    target,
+                    saved,
+                    linkedAccountId,
+                    percent,
+                    icon: '🎯',
+                    color: '#0F766E'
+                });
+            }
+
+            saveState();
+            closeModal('modal-goal');
+            showToast('✅ Цель сохранена');
+        }
+
+        function deleteCurrentGoal() {
+            const id = document.getElementById('editGoalId').value;
+            state.goals = state.goals.filter(g => g.id !== id);
+            saveState();
+            closeModal('modal-goal');
+            showToast('🗑️ Цель удалена');
+        }
+
+        function openAddFundsModal(goalId) {
+            populateAccountSelects();
+            const g = state.goals.find(item => item.id === goalId);
+            document.getElementById('addFundsGoalId').value = g.id;
+            document.getElementById('addFundsGoalTitle').innerText = `Пополнить: ${g.name}`;
+            document.getElementById('addFundsAmount').value = '';
+            openModal('modal-add-funds');
+        }
+
+        function submitAddFunds(e) {
+            e.preventDefault();
+            const goalId = document.getElementById('addFundsGoalId').value;
+            const fromAccId = document.getElementById('addFundsFromAcc').value;
+            const amount = parseFloat(document.getElementById('addFundsAmount').value);
+
+            const g = state.goals.find(item => item.id === goalId);
+            const fromAcc = state.accounts.find(a => a.id === fromAccId);
+            const toAcc = state.accounts.find(a => a.id === g.linkedAccountId);
+
+            if (g && amount > 0) {
+                g.saved += amount;
+                if (fromAcc) fromAcc.balance -= amount;
+                if (toAcc && toAcc.id !== fromAccId) toAcc.balance += amount;
+
+                state.transactions.unshift({
+                    id: Date.now(),
+                    type: 'expense',
+                    amount,
+                    category: '🎯 Пополнение цели',
+                    accountId: fromAccId,
+                    note: `В цель: ${g.name}`,
+                    author: state.activeUser,
+                    date: new Date().toISOString()
+                });
+            }
+
+            saveState();
+            closeModal('modal-add-funds');
+            showToast(`🎉 +${formatMoney(amount)} в цель!`);
+        }
+
+        // ==================== РЕАЛЬНЫЙ OCR СКАНЕР ЧЕКОВ (TESSERACT.JS) ====================
+        async function handleReceiptScan(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const box = document.getElementById('ocrProgressBox');
+            box.innerHTML = `<div style="padding:14px; background:#F0FDFA; border-radius:14px; font-size:13px; color:#0F766E; font-weight:600;">⏳ Распознаю текст и сумму чека...</div>`;
+
+            try {
+                const worker = await Tesseract.createWorker('rus+eng');
+                const ret = await worker.recognize(file);
+                const text = ret.data.text;
+                await worker.terminate();
+
+                const lines = text.split('\n');
+                let detectedAmount = 0;
+                for (const line of lines) {
+                    if (/итог|всего|сумма|оплат|total/i.test(line)) {
+                        const match = line.match(/(\d+[\s.,]\d{2})/);
+                        if (match) {
+                            detectedAmount = parseFloat(match[1].replace(/\s/g, '').replace(',', '.'));
+                        }
+                    }
+                }
+                if (!detectedAmount) {
+                    const allNums = text.match(/\d+[.,]\d{2}/g);
+                    if (allNums) {
+                        const parsed = allNums.map(n => parseFloat(n.replace(',', '.')));
+                        detectedAmount = Math.max(...parsed);
+                    }
+                }
+
+                let guessedCat = 'Продукты';
+                if (/аптек|лекарств|здрав/i.test(text)) guessedCat = 'Здоровье и Аптека';
+                else if (/такси|азс|бензин|метро|парковк/i.test(text)) guessedCat = 'Транспорт';
+                else if (/кафе|кофе|ресторан|бургер|пицц/i.test(text)) guessedCat = 'Кафе и Доставка';
+
+                box.innerHTML = `
+                    <div style="padding:16px; background:#ECFDF5; border:1px solid #A7F3D0; border-radius:16px;">
+                        <div style="font-weight:800; color:#065F46; margin-bottom:6px;">✅ Чек распознан!</div>
+                        <div style="font-size:13px; color:#047857; margin-bottom:12px;">
+                            Найдена сумма: <strong>${detectedAmount ? formatMoney(detectedAmount) : 'не удалось точно считать'}</strong><br>
+                            Категория: <strong>${guessedCat}</strong>
                         </div>
-                        <div class="${tx.type === 'income' ? 'amount-income' : 'amount-expense'}">
-                            ${tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()} ₽
+                        <button class="btn-primary" style="padding:11px;" onclick="applyScannedReceipt(${detectedAmount || 0}, '${guessedCat}')">
+                            Оформить расход
+                        </button>
+                    </div>
+                `;
+            } catch (err) {
+                box.innerHTML = `<div style="padding:12px; background:#FEF2F2; color:#B91C1C; border-radius:12px; font-size:13px;">Не удалось прочитать фото. Попробуйте сделать снимок четче или введите сумму вручную.</div>`;
+            }
+        }
+
+        function applyScannedReceipt(amount, category) {
+            openTxModal('expense');
+            if (amount > 0) document.getElementById('txAmountField').value = amount;
+            const sel = document.getElementById('txCategoryField');
+            for (let opt of sel.options) {
+                if (opt.value.includes(category)) sel.value = opt.value;
+            }
+        }
+
+        // ==================== РЕАЛЬНЫЙ АНАЛИЗ БАНКОВСКОЙ ВЫПИСКИ PDF ====================
+        async function handlePdfStatement(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const out = document.getElementById('pdfAnalysisResult');
+            out.innerHTML = `<div style="padding:14px; background:#F0FDFA; border-radius:14px; font-size:13px; color:#0F766E; font-weight:600;">⏳ Читаю PDF-выписку и анализирую категории трат...</div>`;
+
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                let fullText = '';
+                for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    fullText += content.items.map(item => item.str).join(' ') + '\n';
+                }
+
+                const stats = { 'Продукты': 0, 'Кафе и Доставка': 0, 'Транспорт': 0, 'ЖКХ и Связь': 0, 'Покупки и Одежда': 0 };
+                const tokens = fullText.split(/\s+/);
+                for (let i = 0; i < tokens.length; i++) {
+                    const word = tokens[i].toLowerCase();
+                    const windowStr = tokens.slice(i, i + 6).join(' ');
+                    const numMatch = windowStr.match(/(\d{1,3}(?:[\s]\d{3})*(?:[.,]\d{2}))/);
+                    if (numMatch) {
+                        const val = parseFloat(numMatch[1].replace(/\s/g, '').replace(',', '.'));
+                        if (val > 50 && val < 300000) {
+                            if (/пятерочк|перекрест|магнит|вкусвилл|лента|ашан|супермаркет/.test(word)) stats['Продукты'] += val;
+                            else if (/яндекс\.еда|вкусно|кофе|кафе|ресторан|додо/.test(word)) stats['Кафе и Доставка'] += val;
+                            else if (/такси|азс|лукойл|газпром|транспорт|ржд/.test(word)) stats['Транспорт'] += val;
+                            else if (/жкх|мтс|билайн|мегафон|теле2|интернет/.test(word)) stats['ЖКХ и Связь'] += val;
+                            else if (/ozon|wildberries|маркет|одежд/.test(word)) stats['Покупки и Одежда'] += val;
+                        }
+                    }
+                }
+
+                const summaryHtml = Object.entries(stats)
+                    .filter(([_, v]) => v > 0)
+                    .map(([k, v]) => `<div style="display:flex; justify-content:space-between; padding:4px 0;"><span>${k}:</span><strong>${formatMoney(v)}</strong></div>`)
+                    .join('');
+
+                out.innerHTML = `
+                    <div style="padding:16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:16px;">
+                        <div style="font-weight:800; color:var(--text-primary); margin-bottom:8px;">📊 Выписка успешно проанализирована (${pdf.numPages} стр.)</div>
+                        ${summaryHtml || '<div style="font-size:13px; color:var(--text-secondary);">Операции распознаны. Рекомендуем придерживаться правила 50/30/20.</div>'}
+                        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #E2E8F0; font-size:12.5px; color:#0F766E; font-weight:600;">
+                            💡 Совет аналитика: Установите месячные лимиты на основе этих цифр во вкладке «Лимиты», чтобы экономить до 15% бюджета ежемесячно.
                         </div>
                     </div>
                 `;
+            } catch (e) {
+                out.innerHTML = `<div style="padding:12px; background:#FEF2F2; color:#B91C1C; border-radius:12px; font-size:13px;">Ошибка чтения PDF. Убедитесь, что файл не защищен паролем.</div>`;
+            }
+        }
+
+        // ==================== КАЛЬКУЛЯТОР ФИНАНСОВОЙ ГРАМОТНОСТИ ====================
+        function calculateSmartSplit() {
+            const val = parseFloat(document.getElementById('salarySplitInput').value) || 0;
+            const out = document.getElementById('smartSplitOutput');
+            if (val <= 0) {
+                out.innerHTML = '';
+                return;
+            }
+
+            const cushionShare = Math.round(val * 0.20);
+            const goalsShare = Math.round(val * 0.10);
+            const needsShare = Math.round(val * 0.50);
+            const wantsShare = val - cushionShare - goalsShare - needsShare;
+
+            out.innerHTML = `
+                <div style="background:#F0FDFA; border-radius:16px; padding:14px; border:1px solid #CCFBF1;">
+                    <div style="font-size:12.5px; font-weight:700; color:#134E4A; margin-bottom:10px;">Рекомендуемое распределение (Правило 50/30/20):</div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                        <span>🛡️ В подушку безопасности (20%):</span>
+                        <strong style="color:#0F766E;">${formatMoney(cushionShare)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                        <span>🎯 На крупные цели / отпуск (10%):</span>
+                        <strong style="color:#0284C7;">${formatMoney(goalsShare)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                        <span>🏠 Обязательные расходы (50%):</span>
+                        <strong>${formatMoney(needsShare)}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:13px;">
+                        <span>☕ Личные траты и отдых (20%):</span>
+                        <strong>${formatMoney(wantsShare)}</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== УВЕДОМЛЕНИЯ И ЛИМИТЫ ====================
+        function addSystemNotification(title, text) {
+            state.notifications.unshift({
+                id: Date.now(),
+                title,
+                text,
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             });
-
-            document.getElementById('totalBalance').innerText = (income - expense).toLocaleString() + ' ₽';
-            document.getElementById('totalIncome').innerText = income.toLocaleString() + ' ₽';
-            document.getElementById('totalExpense').innerText = expense.toLocaleString() + ' ₽';
-            document.getElementById('txList').innerHTML = listHTML || '<p style="color:var(--text-secondary); font-size:0.85rem; text-align:center; padding: 10px 0;">Нет операций</p>';
-
-            const cushionPct = Math.min(100, Math.round((db.cushion / 150000) * 100));
-            document.getElementById('cushionBar').style.width = cushionPct + '%';
-            document.getElementById('cushionCurrent').innerText = db.cushion.toLocaleString() + ' ₽ накоплено';
-            document.getElementById('cushionPercent').innerText = cushionPct + '%';
-
-            const vacPct = Math.min(100, Math.round((db.vacation / 100000) * 100));
-            document.getElementById('vacationBar').style.width = vacPct + '%';
-            document.getElementById('vacationCurrent').innerText = db.vacation.toLocaleString() + ' ₽ накоплено';
-            document.getElementById('vacationPercent').innerText = vacPct + '%';
+            document.getElementById('notifBadge').classList.add('active');
         }
 
-        function processReceipt(event) {
-            const file = event.target.files[0];
+        function openNotifications() {
+            document.getElementById('notifBadge').classList.remove('active');
+            const cont = document.getElementById('notificationsContainer');
+            cont.innerHTML = state.notifications.map(n => `
+                <div style="padding:12px; background:#F8FAFC; border-radius:14px; margin-bottom:10px; border:1px solid #E2E8F0;">
+                    <div style="display:flex; justify-content:space-between; font-size:13.5px; font-weight:700; margin-bottom:4px;">
+                        <span>${n.title}</span>
+                        <span style="font-size:11px; color:var(--text-muted);">${n.time}</span>
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.4;">${n.text}</div>
+                </div>
+            `).join('');
+            openModal('modal-notifs');
+        }
+
+        function openLimitModal() {
+            Object.entries(state.limits).forEach(([cat, val]) => {
+                const inp = document.getElementById('lim-' + cat);
+                if (inp) inp.value = val;
+            });
+            openModal('modal-limits');
+        }
+
+        function submitLimits(e) {
+            e.preventDefault();
+            Object.keys(state.limits).forEach(cat => {
+                const inp = document.getElementById('lim-' + cat);
+                if (inp) state.limits[cat] = parseFloat(inp.value) || 10000;
+            });
+            saveState();
+            closeModal('modal-limits');
+            showToast('✅ Лимиты обновлены');
+        }
+
+        // ==================== СИНХРОНИЗАЦИЯ GOOGLE DRIVE & OFFLINE ====================
+        function updateNetworkBadge() {
+            const pill = document.getElementById('syncPill');
+            const txt = document.getElementById('syncText');
+            if (!navigator.onLine) {
+                pill.className = 'sync-pill';
+                txt.innerText = 'Офлайн';
+            } else if (googleAccessToken) {
+                pill.className = 'sync-pill online';
+                txt.innerText = 'Drive Sync';
+            } else {
+                pill.className = 'sync-pill online';
+                txt.innerText = 'Локально';
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateNetworkBadge();
+            if (googleAccessToken) uploadToGoogleDrive();
+            showToast('🌐 Сеть восстановлена');
+        });
+        window.addEventListener('offline', updateNetworkBadge);
+
+        function triggerGoogleSync() {
+            if (googleAccessToken) {
+                uploadToGoogleDrive();
+            } else {
+                switchTab('settings');
+            }
+        }
+
+        function shareGoogleDriveLink() {
+            switchTab('settings');
+            showToast('Подключите Google Диск для общего доступа');
+        }
+
+        function connectGoogleDrive() {
+            const clientId = document.getElementById('googleClientIdInput').value.trim();
+            if (clientId) {
+                state.googleClientId = clientId;
+                saveState(false);
+            }
+
+            if (!state.googleClientId) {
+                showToast('⚠️ Укажите Google Client ID или используйте экспорт JSON');
+                document.getElementById('googleSyncDetails').innerHTML = 'Для автоматического OAuth входа через Google API требуется Client ID (scope: <code>https://www.googleapis.com/auth/drive.file</code>). Без него доступен мгновенный обмен файлом JSON ниже.';
+                return;
+            }
+
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: state.googleClientId,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                callback: async (resp) => {
+                    if (resp.error) return;
+                    googleAccessToken = resp.access_token;
+                    updateNetworkBadge();
+                    await syncWithDriveFile();
+                }
+            });
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        }
+
+        async function syncWithDriveFile() {
+            const pill = document.getElementById('syncPill');
+            const txt = document.getElementById('syncText');
+            pill.className = 'sync-pill syncing';
+            txt.innerText = 'Синхронизация...';
+
+            try {
+                const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name='family_budget_db.json' and trashed=false", {
+                    headers: { Authorization: `Bearer ${googleAccessToken}` }
+                });
+                const searchData = await searchRes.json();
+
+                if (searchData.files && searchData.files.length > 0) {
+                    driveFileId = searchData.files[0].id;
+                    localStorage.setItem('gdrive_file_id', driveFileId);
+                    const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+                        headers: { Authorization: `Bearer ${googleAccessToken}` }
+                    });
+                    const cloudDb = await fileRes.json();
+                    if (cloudDb && cloudDb.accounts) {
+                        state = cloudDb;
+                        saveState(false);
+                    }
+                } else {
+                    await uploadToGoogleDrive();
+                }
+                showToast('☁️ Синхронизировано с Google Диском');
+                document.getElementById('googleSyncDetails').innerText = `Последняя синхронизация: ${new Date().toLocaleTimeString()}`;
+            } catch (err) {
+                showToast('⚠️ Ошибка синхронизации с Drive');
+            } finally {
+                updateNetworkBadge();
+            }
+        }
+
+        async function uploadToGoogleDrive() {
+            if (!googleAccessToken) return;
+            const metadata = { name: 'family_budget_db.json', mimeType: 'application/json' };
+            const form = new FormData();
+            form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            form.append('file', new Blob([JSON.stringify(state)], { type: 'application/json' }));
+
+            const url = driveFileId
+                ? `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`
+                : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+            const method = driveFileId ? 'PATCH' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: { Authorization: `Bearer ${googleAccessToken}` },
+                body: form
+            });
+            const data = await res.json();
+            if (data.id) {
+                driveFileId = data.id;
+                localStorage.setItem('gdrive_file_id', driveFileId);
+            }
+        }
+
+        function exportDatabaseFile() {
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'family_budget_db.json';
+            a.click();
+            showToast('📤 Файл базы скачан');
+        }
+
+        function importDatabaseFile(e) {
+            const file = e.target.files[0];
             if (!file) return;
-            document.getElementById('scanResult').innerHTML = "<span style='color:var(--text-secondary);'>⏳ Сканирование чека...</span>";
-            setTimeout(() => {
-                const amount = Math.floor(Math.random() * 1200) + 250;
-                document.getElementById('scanResult').innerHTML = `
-                    <div style="background:rgba(16, 185, 129, 0.1); padding:12px; border-radius:10px; border:1px solid rgba(16, 185, 129, 0.3);">
-                        ✅ <strong>Распознано:</strong> ${amount} ₽ (Продукты)<br>
-                        <button class="btn btn-success" style="margin-top:10px; padding:10px;" onclick="addScanned(${amount})">Добавить в расходы</button>
-                    </div>`;
-            }, 1200);
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (imported.accounts && imported.goals) {
+                        state = imported;
+                        saveState(false);
+                        showToast('📥 База семьи успешно загружена!');
+                    }
+                } catch (err) {
+                    showToast('⚠️ Неверный формат файла');
+                }
+            };
+            reader.readAsText(file);
         }
 
-        function addScanned(amount) {
-            db.transactions.unshift({ id: Date.now(), type: 'expense', amount, category: 'Продукты', date: new Date().toLocaleDateString() });
-            saveLocal();
-            document.getElementById('scanResult').innerHTML = "<span style='color:var(--success);'>✅ Успешно добавлено!</span>";
+        // Регистрация Service Worker для 100% офлайн-работы на iPhone
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
 
-        function processPDF(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            document.getElementById('pdfResult').innerHTML = "<span style='color:var(--text-secondary);'>⏳ Анализ выписки...</span>";
-            setTimeout(() => {
-                document.getElementById('pdfResult').innerHTML = `
-                    <div style="background:rgba(99, 102, 241, 0.1); padding:12px; border-radius:10px; border:1px solid rgba(99, 102, 241, 0.3);">
-                        ✅ <strong>Анализ завершен!</strong><br>
-                        Средние траты: <strong>68 400 ₽/мес</strong><br>
-                        Совет: Рекомендуем сократить категорию «Развлечения» на 15%.
-                    </div>`;
-            }, 1500);
-        }
-
-        function syncWithGoogleDrive() {
-            const status = document.getElementById('driveStatus');
-            status.innerHTML = "<span style='color:#facc15;'>🔄 Синхронизация...</span>";
-            setTimeout(() => {
-                status.innerHTML = "✅ Синхронизировано с Google Диском!";
-                document.getElementById('syncIndicator').innerText = "Онлайн";
-                document.getElementById('syncIndicator').classList.add('synced');
-            }, 1200);
-        }
-
-        updateUI();
+        // Инициализация при старте
+        renderAll();
     </script>
 </body>
 </html>
