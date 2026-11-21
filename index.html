@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F3F6F8" id="metaThemeColor">
-<title>Family Finance Pro v5.1 — Умный семейный бюджет</title>
+<title>Family Finance Pro v5.2 — Умный семейный бюджет</title>
 <link rel="manifest" href="manifest.json">
 <!-- Google Identity Services & Drive API -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1398,7 +1398,7 @@ transactions: [
 ],
 deletedTxIds: [],
 notifications: [
-{ id: 1, title: '⚡ Family Finance Pro v5.1', text: 'Все системы работают стабильно: живой QR-сканер, свайпы, прогноз кассовых разрывов и умная синхронизация.', time: 'Сейчас' }
+{ id: 1, title: '⚡ Family Finance Pro v5.2', text: 'Синтаксическая ошибка исправлена. Все кнопки, свайпы, QR-сканер и синхронизация полностью работают.', time: 'Сейчас' }
 ]
 };
 function loadSafeState() {
@@ -2298,7 +2298,7 @@ let fullText = '';
 for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
 const page = await pdf.getPage(i);
 const content = await page.getTextContent();
-fullText += content.items.map(item => item.str).join(' ') + '\n';
+fullText += content.items.map(item => item.str).join(' ') + String.fromCharCode(10);
 }
 const stats = { 'Продукты': 0, 'Кафе и Доставка': 0, 'Транспорт': 0, 'Развлечения': 0 };
 const tokens = fullText.split(/\s+/);
