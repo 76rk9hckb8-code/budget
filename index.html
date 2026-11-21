@@ -6,11 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F3F6F8" id="metaThemeColor">
-<title>Family Finance Pro v4 — Умный семейный бюджет</title>
+<title>Family Finance Pro v5 — Умный семейный бюджет</title>
 <link rel="manifest" href="manifest.json">
 <!-- Google Identity Services & Drive API -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<!-- jsQR для мгновенного 0.2с чтения QR-кодов кассовых чеков ФНС РФ -->
+<!-- jsQR для мгновенного чтения QR-кодов ФНС РФ (живая камера + фото) -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <!-- PDF.js для локального чтения банковских выписок -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -39,11 +39,11 @@
 --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
 [data-theme="dark"] {
---bg-main: #090D16;
---bg-card: #131B2E;
+--bg-main: #000000;
+--bg-card: #121826;
 --bg-subtle: #1E293B;
---bg-glass: rgba(9, 13, 22, 0.86);
---nav-glass: rgba(19, 27, 46, 0.94);
+--bg-glass: rgba(0, 0, 0, 0.84);
+--nav-glass: rgba(18, 24, 38, 0.92);
 --text-primary: #F8FAFC;
 --text-secondary: #94A3B8;
 --text-muted: #64748B;
@@ -51,7 +51,7 @@
 --accent-teal-light: #2DD4BF;
 --accent-grad: linear-gradient(135deg, #0F766E 0%, #0D9488 55%, #14B8A6 100%);
 --border-subtle: rgba(255, 255, 255, 0.08);
---shadow-card: 0 12px 32px -10px rgba(0, 0, 0, 0.5);
+--shadow-card: 0 12px 32px -10px rgba(0, 0, 0, 0.65);
 --shadow-float: 0 20px 40px -15px rgba(20, 184, 166, 0.25);
 }
 * {
@@ -102,16 +102,16 @@ font-weight: 800;
 color: #fff;
 border: 2px solid var(--bg-main);
 box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-transition: transform 0.2s;
+transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .avatar-circle.active-user {
-transform: scale(1.1);
+transform: scale(1.12);
 box-shadow: 0 0 0 2px var(--accent-teal);
 }
 .avatar-1 { background: linear-gradient(135deg, #0F766E, #14B8A6); z-index: 2; }
 .avatar-2 { background: linear-gradient(135deg, #F59E0B, #D97706); margin-left: -8px; z-index: 1; }
 .header-title {
-font-size: 16.5px;
+font-size: 16px;
 font-weight: 800;
 letter-spacing: -0.3px;
 color: var(--text-primary);
@@ -119,7 +119,7 @@ color: var(--text-primary);
 .header-actions {
 display: flex;
 align-items: center;
-gap: 8px;
+gap: 7px;
 }
 .sync-pill {
 display: flex;
@@ -138,8 +138,8 @@ transition: all 0.25s;
 .sync-pill.syncing { background: rgba(245, 158, 11, 0.2); color: #D97706; }
 .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .icon-btn {
-width: 35px;
-height: 35px;
+width: 34px;
+height: 34px;
 border-radius: 50%;
 background: var(--bg-card);
 border: 1px solid var(--border-subtle);
@@ -151,6 +151,7 @@ position: relative;
 cursor: pointer;
 box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 transition: transform 0.15s;
+font-size: 14px;
 }
 .icon-btn:active { transform: scale(0.9); }
 .notif-badge {
@@ -173,11 +174,11 @@ padding: 0 16px;
 }
 .tab-view {
 display: none;
-animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+animation: slideUpFade 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .tab-view.active { display: block; }
 @keyframes slideUpFade {
-from { opacity: 0; transform: translateY(12px) scale(0.99); }
+from { opacity: 0; transform: translateY(10px) scale(0.99); }
 to { opacity: 1; transform: translateY(0) scale(1); }
 }
 /* Hero Balance Card */
@@ -219,21 +220,23 @@ font-variant-numeric: tabular-nums;
 }
 /* Safe-to-Spend Widget Inside Hero */
 .safe-spend-box {
-background: rgba(0, 0, 0, 0.18);
+background: rgba(0, 0, 0, 0.2);
 backdrop-filter: blur(10px);
 -webkit-backdrop-filter: blur(10px);
-border: 1px solid rgba(255, 255, 255, 0.15);
+border: 1px solid rgba(255, 255, 255, 0.16);
 border-radius: 16px;
 padding: 11px 14px;
 margin-bottom: 16px;
 display: flex;
 justify-content: space-between;
 align-items: center;
+gap: 10px;
+cursor: pointer;
 }
 .safe-spend-left {
 font-size: 11.5px;
 line-height: 1.35;
-color: rgba(255, 255, 255, 0.9);
+color: rgba(255, 255, 255, 0.92);
 }
 .safe-spend-val {
 font-size: 18px;
@@ -242,6 +245,7 @@ color: #A7F3D0;
 font-variant-numeric: tabular-nums;
 white-space: nowrap;
 }
+.safe-spend-val.danger { color: #FCA5A5; }
 .hero-actions {
 display: grid;
 grid-template-columns: 1fr 1fr;
@@ -358,11 +362,15 @@ margin-bottom: 15px;
 background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(15, 118, 110, 0.18) 100%);
 border: 1px solid rgba(20, 184, 166, 0.25);
 border-radius: 22px;
-padding: 15px 16px;
+padding: 14px 16px;
 margin: 12px 0 15px;
 display: flex;
 gap: 12px;
 align-items: flex-start;
+}
+.mentor-card.alert {
+background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.14) 100%);
+border-color: rgba(239, 68, 68, 0.28);
 }
 .mentor-icon {
 width: 38px;
@@ -376,6 +384,7 @@ justify-content: center;
 font-size: 18px;
 flex-shrink: 0;
 }
+.mentor-card.alert .mentor-icon { background: var(--expense-color); }
 .mentor-title {
 font-size: 13px;
 font-weight: 800;
@@ -413,17 +422,49 @@ height: 100%;
 border-radius: 99px;
 transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* Transactions & Swipe/Quick Actions */
+/* iOS Swipeable Transaction Rows */
+.swipe-container {
+position: relative;
+overflow: hidden;
+border-bottom: 1px solid var(--border-subtle);
+}
+.swipe-container:last-child { border-bottom: none; }
+.swipe-actions {
+position: absolute;
+top: 0;
+right: 0;
+bottom: 0;
+display: flex;
+align-items: stretch;
+z-index: 1;
+}
+.swipe-btn {
+width: 64px;
+border: none;
+color: #fff;
+font-size: 12px;
+font-weight: 700;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 2px;
+cursor: pointer;
+}
+.swipe-btn.edit { background: #3B82F6; }
+.swipe-btn.del { background: #EF4444; }
 .tx-item {
+position: relative;
+z-index: 2;
+background: var(--bg-card);
 display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 11px 0;
-border-bottom: 1px solid var(--border-subtle);
 gap: 8px;
+transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+touch-action: pan-y;
 }
-.tx-item:last-child { border-bottom: none; padding-bottom: 0; }
-.tx-item:first-child { padding-top: 0; }
 .tx-left {
 display: flex;
 align-items: center;
@@ -467,37 +508,20 @@ font-size: 10px;
 font-weight: 600;
 color: var(--text-secondary);
 }
-.tx-right {
-display: flex;
-align-items: center;
-gap: 6px;
-flex-shrink: 0;
-}
 .tx-amount {
 font-size: 14.5px;
 font-weight: 800;
 font-variant-numeric: tabular-nums;
 text-align: right;
-margin-right: 4px;
+flex-shrink: 0;
 }
 .tx-amount.inc { color: var(--income-color); }
 .tx-amount.exp { color: var(--text-primary); }
-.tx-act-btn {
-background: var(--bg-subtle);
-color: var(--text-secondary);
-border: none;
-width: 27px;
-height: 27px;
-border-radius: 8px;
-font-size: 12px;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-.tx-act-btn.del {
-background: rgba(239, 68, 68, 0.1);
-color: var(--expense-color);
+.swipe-hint {
+font-size: 11px;
+color: var(--text-muted);
+text-align: center;
+margin-top: 8px;
 }
 /* Goals & Subscriptions Cards */
 .goal-card {
@@ -548,29 +572,79 @@ cursor: pointer;
 padding: 4px 8px;
 border-radius: 8px;
 }
-/* Custom Native iOS Pin-Pad */
+/* Live QR Camera Box */
+.qr-video-wrap {
+position: relative;
+width: 100%;
+border-radius: 18px;
+overflow: hidden;
+background: #000;
+margin-bottom: 12px;
+display: none;
+}
+.qr-video-wrap video {
+width: 100%;
+max-height: 260px;
+object-fit: cover;
+display: block;
+}
+.qr-aim-box {
+position: absolute;
+top: 50%;
+left: 50%;
+width: 160px;
+height: 160px;
+transform: translate(-50%, -50%);
+border: 3px solid #14B8A6;
+border-radius: 18px;
+box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.45);
+pointer-events: none;
+}
+/* Custom Native iOS Pin-Pad & Category Chips */
 .pinpad-grid {
 display: grid;
 grid-template-columns: repeat(3, 1fr);
-gap: 8px;
-margin: 10px 0 14px;
+gap: 7px;
+margin: 8px 0 12px;
 }
 .pin-key {
 background: var(--bg-subtle);
 border: 1px solid var(--border-subtle);
 color: var(--text-primary);
-padding: 12px 0;
-border-radius: 14px;
-font-size: 19px;
+padding: 11px 0;
+border-radius: 13px;
+font-size: 18px;
 font-weight: 700;
 cursor: pointer;
 text-align: center;
-transition: background 0.12s, transform 0.1s;
+transition: background 0.1s, transform 0.1s;
 }
 .pin-key:active {
 background: var(--accent-teal);
 color: #fff;
-transform: scale(0.95);
+transform: scale(0.94);
+}
+.cat-chips-grid {
+display: flex;
+flex-wrap: wrap;
+gap: 7px;
+margin-bottom: 12px;
+}
+.cat-chip {
+background: var(--bg-subtle);
+border: 1.5px solid transparent;
+color: var(--text-primary);
+padding: 7px 11px;
+border-radius: 12px;
+font-size: 12.5px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.15s;
+}
+.cat-chip.selected {
+background: rgba(20, 184, 166, 0.16);
+border-color: var(--accent-teal);
+color: var(--accent-teal);
 }
 /* Bottom Tab Bar */
 .bottom-nav {
@@ -697,8 +771,8 @@ box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 display: flex;
 gap: 7px;
 overflow-x: auto;
-padding-bottom: 6px;
-margin-bottom: 8px;
+padding-bottom: 4px;
+margin-bottom: 6px;
 scrollbar-width: none;
 }
 .quick-chips::-webkit-scrollbar { display: none; }
@@ -742,7 +816,7 @@ margin-top: 8px;
 .upload-zone {
 border: 2px dashed var(--border-subtle);
 border-radius: 18px;
-padding: 20px 14px;
+padding: 18px 14px;
 text-align: center;
 background: var(--bg-subtle);
 cursor: pointer;
@@ -782,14 +856,14 @@ text-align: center;
 <div id="avYou" class="avatar-circle avatar-1 active-user">Я</div>
 <div id="avWife" class="avatar-circle avatar-2">Ж</div>
 </div>
-<div class="header-title">Family Finance Pro</div>
+<div class="header-title">Family Finance</div>
 <div class="header-actions">
 <div id="syncPill" class="sync-pill" onclick="triggerGoogleSync()">
 <span class="sync-dot"></span>
 <span id="syncText">Локально</span>
 </div>
-<button class="icon-btn" onclick="toggleTheme()" aria-label="Тема">
-<span id="themeIcon">🌙</span>
+<button class="icon-btn" onclick="cycleTheme()" aria-label="Тема (Авто/Светлая/OLED)" title="Тема">
+<span id="themeIcon">🌗</span>
 </button>
 <button class="icon-btn" onclick="openNotifications()" aria-label="Уведомления">
 🔔
@@ -802,16 +876,16 @@ text-align: center;
 <section id="view-home" class="tab-view active">
 <div class="hero-card">
 <div class="hero-label">
-<span>Свободный баланс семьи</span>
-<span id="currentUserBadge" style="background:rgba(255,255,255,0.2); padding:3px 9px; border-radius:9px; font-size:11px; cursor:pointer;" onclick="toggleActiveUser()">Профиль: Вы ⇄</span>
+<span>Общий баланс семьи</span>
+<span id="currentUserBadge" style="background:rgba(255,255,255,0.2); padding:3px 9px; border-radius:9px; font-size:11px; cursor:pointer;" onclick="toggleActiveUser()">Автор: Вы ⇄</span>
 </div>
 <div class="hero-balance" id="heroTotalBalance">0 ₽</div>
-<!-- 1. Безопасный дневной лимит (Safe-to-Spend) -->
-<div class="safe-spend-box">
+<!-- 1. Безопасный дневной лимит (Safe-to-Spend) с настройкой дня зарплаты -->
+<div class="safe-spend-box" onclick="openPaydayModal()" title="Нажмите, чтобы задать день зарплаты">
 <div class="safe-spend-left">
-<strong>Безопасный лимит на сегодня</strong>
+<strong>Безопасный лимит на сегодня ✎</strong>
 
-<span id="safeSpendSub" style="opacity:0.8;">За вычетом целей и обязательных платежей</span>
+<span id="safeSpendSub" style="opacity:0.85;">За вычетом целей и обязательных платежей</span>
 </div>
 <div class="safe-spend-val" id="safeSpendAmount">0 ₽ / день</div>
 </div>
@@ -830,12 +904,12 @@ text-align: center;
 <button class="section-link" onclick="openAccountModal()">+ Счет</button>
 </div>
 <div class="accounts-scroll" id="accountsStrip"></div>
-<!-- Прогноз темпа трат и совет аналитика -->
-<div class="mentor-card">
-<div class="mentor-icon">🧠</div>
+<!-- Прогноз темпа трат, кассовых разрывов и сравнение с прошлым месяцем -->
+<div class="mentor-card" id="mentorCard">
+<div class="mentor-icon" id="mentorIcon">🧠</div>
 <div style="flex:1;">
-<div class="mentor-title" id="mentorTitle">Финансовый радар и аналитика</div>
-<div class="mentor-text" id="mentorAdviceText">Анализирую темп расходов и регулярные платежи...</div>
+<div class="mentor-title" id="mentorTitle">Финансовый радар и прогноз</div>
+<div class="mentor-text" id="mentorAdviceText">Анализирую темп расходов и обязательные платежи...</div>
 </div>
 </div>
 <!-- Сводка за месяц -->
@@ -856,13 +930,14 @@ text-align: center;
 </div>
 <div id="topCategoriesBars" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-top:10px; border-top:1px solid var(--border-subtle);"></div>
 </div>
-<!-- Последние операции -->
+<!-- Последние операции (свайп влево для действий) -->
 <div class="card">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
 <span class="section-title">Последние операции</span>
 <button class="section-link" onclick="switchTab('activity')">Все и лимиты →</button>
 </div>
 <div id="recentTxList"></div>
+<div class="swipe-hint">← Смахните операцию влево, чтобы изменить или удалить</div>
 </div>
 </section>
 <!-- ==================== TAB 2: ЦЕЛИ И ПОДПИСКИ ==================== -->
@@ -881,32 +956,39 @@ text-align: center;
 </section>
 <!-- ==================== TAB 3: QR-СКАНЕР ЧЕКОВ И PDF ==================== -->
 <section id="view-advisor" class="tab-view">
-<!-- Мгновенный сканер QR-кодов ФНС + OCR + Разбивка чека -->
+<!-- Живой QR-сканер ФНС (0.2 сек) + Фото/OCR -->
 <div class="card">
-<div class="section-title" style="margin-bottom:5px;">⚡ QR-сканер чеков ФНС и Фото OCR</div>
+<div class="section-title" style="margin-bottom:5px;">⚡ Мгновенный QR-сканер ФНС и Фото OCR</div>
 <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
-Сфотографируйте QR-код на чеке (точность 100% за 0.2 сек) или весь чек целиком. Можно разбить один чек на несколько категорий.
+Наведите камеру на QR-код кассового чека — сумма и дата считаются за 0.2 сек со 100% точностью. Либо загрузите фото чека.
 </p>
-<div class="upload-zone">
-<input type="file" accept="image/*" capture="environment" onchange="handleSmartReceipt(event)">
-<div style="font-size:26px; margin-bottom:4px;">📷</div>
-<div style="font-size:14px; font-weight:700;">Сканировать QR-код или чек</div>
-<div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Автоопределение суммы ФНС (s=...) и текста</div>
+<div class="qr-video-wrap" id="qrVideoWrap">
+<video id="qrVideo" playsinline autoplay muted></video>
+<div class="qr-aim-box"></div>
+</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+<button type="button" class="btn-primary" id="liveQrBtn" style="padding:12px; font-size:13.5px;" onclick="toggleLiveQR()">
+📷 Живой QR-сканер
+</button>
+<label class="chip-btn" style="padding:12px; text-align:center; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">
+🖼️ Фото чека / OCR
+<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSmartReceipt(event)">
+</label>
 </div>
 <canvas id="qrCanvas" style="display:none;"></canvas>
-<div id="receiptScanResult" style="margin-top:12px;"></div>
+<div id="receiptScanResult" style="margin-top:10px;"></div>
 </div>
 <!-- Анализ банковской выписки PDF -->
 <div class="card">
 <div class="section-title" style="margin-bottom:5px;">📄 Умный разбор банковской выписки (PDF)</div>
 <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
-Загрузите PDF-справку по движению средств (Сбер, Т-Банк, Альфа). Аналитик распознает траты по категориям и предложит обновить ваши месячные лимиты в 1 клик.
+Загрузите PDF-справку по движению средств (Сбер, Т-Банк, Альфа). Аналитик разложит траты по категориям и предложит умные лимиты в 1 клик.
 </p>
 <div class="upload-zone">
 <input type="file" accept="application/pdf" onchange="handlePdfStatement(event)">
 <div style="font-size:26px; margin-bottom:4px;">📊</div>
 <div style="font-size:14px; font-weight:700;">Выбрать PDF-выписку</div>
-<div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Полный локальный разбор без отправки в сеть</div>
+<div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">Полный локальный разбор на вашем iPhone</div>
 </div>
 <div id="pdfAnalysisResult" style="margin-top:12px;"></div>
 </div>
@@ -928,7 +1010,7 @@ text-align: center;
 <div class="card">
 <div class="section-title" style="margin-bottom:6px;">☁️ Бесконфликтная синхронизация (Smart Merge)</div>
 <p style="font-size:12.5px; color:var(--text-secondary); line-height:1.45; margin-bottom:14px;">
-При синхронизации с Google Диском приложение объединяет новые операции с обоих телефонов по уникальным ID и автоматически пересчитывает балансы всех счетов — ни одна запись в офлайне не пропадет.
+Пооперационное слияние по уникальным ID: новые и удаленные операции с обоих iPhone, счета, цели и подписки объединяются без конфликтов и потерь в офлайне.
 </p>
 <div class="form-group">
 <label class="form-label">Google OAuth Client ID</label>
@@ -942,7 +1024,7 @@ text-align: center;
 <div class="card">
 <div class="section-title" style="margin-bottom:6px;">📲 Обмен файлом базы в 1 касание</div>
 <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:14px;">
-При импорте файла от супруги все ваши и её операции также умно объединятся с пересчетом счетов.
+При импорте JSON-файла от супруги все ваши и её операции, счета и цели умно объединятся с пересчетом балансов.
 </p>
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
 <button class="chip-btn" style="padding:12px; text-align:center;" onclick="exportDatabaseFile()">📤 Экспорт JSON</button>
@@ -966,7 +1048,7 @@ text-align: center;
 </button>
 <button class="nav-tab" data-tab="advisor" onclick="switchTab('advisor')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-QR Чеки & PDF
+QR & PDF
 </button>
 <button class="nav-tab" data-tab="activity" onclick="switchTab('activity')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
@@ -978,7 +1060,7 @@ QR Чеки & PDF
 </button>
 </nav>
 <!-- ==================== MODALS ==================== -->
-<!-- 1. Modal: Добавление / Редактирование операции + Встроенный iOS Пин-пад + Сплит чека -->
+<!-- 1. Modal: Добавление / Редактирование операции + Встроенный Пин-пад + Чипсы категорий + Сплит чека -->
 <div id="modal-tx" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-tx')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -993,21 +1075,23 @@ QR Чеки & PDF
 <form onsubmit="submitTransaction(event)">
 <input type="hidden" id="editTxIdField" value="">
 <input type="hidden" id="txTypeField" value="expense">
+<input type="hidden" id="txCategoryField" value="Продукты">
+<input type="hidden" id="txDateOverride" value="">
 <div class="form-group">
 <div style="display:flex; justify-content:space-between; align-items:center;">
 <label class="form-label">Сумма (₽)</label>
-<button type="button" class="btn-text" style="padding:0; font-size:11.5px;" onclick="togglePinPad()">⌨️ Клавиатура iOS</button>
+<button type="button" class="btn-text" style="padding:0; font-size:11.5px;" onclick="togglePinPad()">⌨️ Пин-пад</button>
 </div>
-<input type="number" id="txAmountField" class="form-input" placeholder="0" step="any" required style="font-size:20px; font-weight:800;">
-<div class="quick-chips" style="margin-top:8px; margin-bottom:0;">
+<input type="number" id="txAmountField" class="form-input" placeholder="0" step="any" inputmode="none" required style="font-size:22px; font-weight:800; text-align:right;" oninput="updateSplitPreview()">
+<div class="quick-chips" style="margin-top:8px;">
 <button type="button" class="chip-btn" onclick="addQuickAmount(100)">+100 ₽</button>
 <button type="button" class="chip-btn" onclick="addQuickAmount(300)">+300 ₽</button>
 <button type="button" class="chip-btn" onclick="addQuickAmount(500)">+500 ₽</button>
 <button type="button" class="chip-btn" onclick="addQuickAmount(1000)">+1 000 ₽</button>
 <button type="button" class="chip-btn" onclick="addQuickAmount(5000)">+5 000 ₽</button>
 </div>
-<!-- Встроенный быстрый цифровой пин-пад -->
-<div id="customPinPad" class="pinpad-grid" style="display:none;">
+<!-- Встроенный цифровой пин-пад (открыт по умолчанию для быстрого ввода за 2 сек) -->
+<div id="customPinPad" class="pinpad-grid">
 <button type="button" class="pin-key" onclick="pinPress('1')">1</button>
 <button type="button" class="pin-key" onclick="pinPress('2')">2</button>
 <button type="button" class="pin-key" onclick="pinPress('3')">3</button>
@@ -1022,47 +1106,41 @@ QR Чеки & PDF
 <button type="button" class="pin-key" onclick="pinPress('back')">⌫</button>
 </div>
 </div>
+<!-- Быстрые чипсы категорий -->
+<div class="form-group">
+<label class="form-label">Категория (в 1 касание)</label>
+<div id="categoryChipsBox" class="cat-chips-grid"></div>
+</div>
 <div class="form-group">
 <label class="form-label">Счет / Карта</label>
 <select id="txAccountField" class="form-select"></select>
 </div>
-<div class="form-group">
-<label class="form-label">Категория</label>
-<select id="txCategoryField" class="form-select">
-<option value="Продукты">🛒 Продукты</option>
-<option value="Кафе и Доставка">☕ Кафе и Доставка</option>
-<option value="ЖКХ и Связь">🏠 ЖКХ и Связь</option>
-<option value="Транспорт">🚕 Транспорт</option>
-<option value="Здоровье и Аптека">💊 Здоровье и Аптека</option>
-<option value="Покупки и Дом">🛍️ Покупки и Дом</option>
-<option value="Развлечения">🎬 Развлечения</option>
-<option value="Зарплата / Доход">💰 Зарплата / Доход</option>
-</select>
-</div>
-<!-- Опция разбивки смешанного чека -->
+<!-- Умная разбивка смешанного чека с живым остатком -->
 <div class="form-group" id="splitReceiptToggleBox">
 <button type="button" class="btn-text" style="padding:0;" onclick="toggleSplitFields()">✂️ Разделить чек на 2 категории</button>
-<div id="splitFieldsContainer" style="display:none; margin-top:10px; padding:12px; background:var(--bg-subtle); border-radius:13px;">
+<div id="splitFieldsContainer" style="display:none; margin-top:10px; padding:12px; background:var(--bg-subtle); border-radius:14px;">
+<div id="splitLivePreview" style="font-size:12px; font-weight:700; color:var(--accent-teal); margin-bottom:8px;"></div>
 <label class="form-label">Сумма 2-й части из этого чека (₽)</label>
-<input type="number" id="splitSecondAmount" class="form-input" placeholder="Например: 800" style="margin-bottom:8px;">
+<input type="number" id="splitSecondAmount" class="form-input" placeholder="Например: 1200" style="margin-bottom:8px;" oninput="updateSplitPreview()">
 <label class="form-label">2-я Категория</label>
-<select id="splitSecondCategory" class="form-select">
+<select id="splitSecondCategory" class="form-select" onchange="updateSplitPreview()">
 <option value="Покупки и Дом">🛍️ Покупки и Дом</option>
 <option value="Развлечения">🎬 Развлечения</option>
 <option value="Здоровье и Аптека">💊 Здоровье и Аптека</option>
 <option value="Кафе и Доставка">☕ Кафе и Доставка</option>
+<option value="Транспорт">🚕 Транспорт</option>
 </select>
 </div>
 </div>
 <div class="form-group">
 <label class="form-label">Комментарий</label>
-<input type="text" id="txNoteField" class="form-input" placeholder="Например: ВкусВилл, чек">
+<input type="text" id="txNoteField" class="form-input" placeholder="Например: ВкусВилл, ужин">
 </div>
 <button type="submit" class="btn-primary">Сохранить операцию</button>
 </form>
 </div>
 </div>
-<!-- 2. Modal: Интерактивное распределение зарплаты в 1 клик -->
+<!-- 2. Modal: Интерактивный чек-лист распределения зарплаты в 1 клик -->
 <div id="modal-salary-wizard" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-salary-wizard')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1072,10 +1150,34 @@ QR Чеки & PDF
 </div>
 <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;" id="wizardSubtitle"></p>
 <div id="wizardAllocationsList" style="margin-bottom:16px;"></div>
-<button class="btn-primary" onclick="executeSalaryAllocation()">⚡ Распределить по целям в 1 клик</button>
+<button class="btn-primary" onclick="executeSalaryAllocation()">⚡ Распределить выбранное в 1 клик</button>
 </div>
 </div>
-<!-- 3. Modal: Перевод между счетами -->
+<!-- 3. Modal: Настройка дня зарплаты для Safe-to-Spend -->
+<div id="modal-payday" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-payday')">
+<div class="bottom-sheet">
+<div class="sheet-handle"></div>
+<div class="sheet-title">
+<span>Расчет дневного лимита</span>
+<button class="btn-text" onclick="closeModal('modal-payday')">Закрыть</button>
+</div>
+<form onsubmit="submitPayday(event)">
+<div class="form-group">
+<label class="form-label">До какого числа делить свободный остаток?</label>
+<select id="paydayModeSelect" class="form-select" onchange="togglePaydayInput()">
+<option value="month_end">До конца текущего месяца</option>
+<option value="custom_day">До дня зарплаты (указать число)</option>
+</select>
+</div>
+<div class="form-group" id="paydayDayBox" style="display:none;">
+<label class="form-label">День зарплаты (1–31)</label>
+<input type="number" id="paydayDayInput" class="form-input" min="1" max="31" value="10">
+</div>
+<button type="submit" class="btn-primary">Сохранить расчет</button>
+</form>
+</div>
+</div>
+<!-- 4. Modal: Перевод между счетами -->
 <div id="modal-transfer" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-transfer')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1100,7 +1202,7 @@ QR Чеки & PDF
 </form>
 </div>
 </div>
-<!-- 4. Modal: Счета -->
+<!-- 5. Modal: Счета -->
 <div id="modal-account" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-account')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1115,7 +1217,7 @@ QR Чеки & PDF
 <input type="text" id="accNameInput" class="form-input" required>
 </div>
 <div class="form-group">
-<label class="form-label">Начальный / Текущий баланс (₽)</label>
+<label class="form-label">Текущий баланс (₽)</label>
 <input type="number" id="accBalanceInput" class="form-input" step="any" required>
 </div>
 <div class="form-group">
@@ -1140,7 +1242,7 @@ QR Чеки & PDF
 </form>
 </div>
 </div>
-<!-- 5. Modal: Цели -->
+<!-- 6. Modal: Цели -->
 <div id="modal-goal" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-goal')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1175,7 +1277,7 @@ QR Чеки & PDF
 </form>
 </div>
 </div>
-<!-- 5b. Modal: Быстрое пополнение цели (+ Пополнить) -->
+<!-- 6b. Modal: Быстрое пополнение цели -->
 <div id="modal-goal-topup" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-goal-topup')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1197,17 +1299,18 @@ QR Чеки & PDF
 </form>
 </div>
 </div>
-<!-- 6. Modal: Регулярный платеж / Подписка -->
+<!-- 7. Modal: Регулярный платеж / Подписка -->
 <div id="modal-sub" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-sub')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
 <div class="sheet-title">
-<span>Регулярный платеж / ЖКХ</span>
+<span id="subModalTitle">Регулярный платеж / ЖКХ</span>
 <button class="btn-text" onclick="closeModal('modal-sub')">Закрыть</button>
 </div>
 <form onsubmit="submitSub(event)">
+<input type="hidden" id="editSubId">
 <div class="form-group">
-<label class="form-label">Название (например: Квартплата, Ипотека, Интернет)</label>
+<label class="form-label">Название (Квартплата, Ипотека, Интернет)</label>
 <input type="text" id="subNameInput" class="form-input" required>
 </div>
 <div class="form-group">
@@ -1218,11 +1321,16 @@ QR Чеки & PDF
 <label class="form-label">День оплаты каждого месяца (1–31)</label>
 <input type="number" id="subDayInput" class="form-input" min="1" max="31" value="25" required>
 </div>
-<button type="submit" class="btn-primary">Добавить в календарь</button>
+<div class="form-group">
+<label class="form-label">Счет списания по умолчанию</label>
+<select id="subAccountSelect" class="form-select"></select>
+</div>
+<button type="submit" class="btn-primary">Сохранить платеж</button>
+<button type="button" id="deleteSubBtn" class="btn-danger-outline" style="display:none;" onclick="deleteCurrentSub()">Удалить платеж</button>
 </form>
 </div>
 </div>
-<!-- 7. Modal: Настройка лимитов -->
+<!-- 8. Modal: Настройка лимитов -->
 <div id="modal-limits" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-limits')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1251,7 +1359,7 @@ QR Чеки & PDF
 </form>
 </div>
 </div>
-<!-- 8. Modal: Уведомления -->
+<!-- 9. Modal: Уведомления -->
 <div id="modal-notifs" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-notifs')">
 <div class="bottom-sheet">
 <div class="sheet-handle"></div>
@@ -1263,25 +1371,41 @@ QR Чеки & PDF
 </div>
 </div>
 <script>
-// ==================== БАЗА ДАННЫХ И SMART-MERGE АРХИТЕКТУРА v4 ====================
+// ==================== КАТЕГОРИИ И БАЗА ДАННЫХ v5 ====================
+const EXPENSE_CATEGORIES = [
+{ id: 'Продукты', icon: '🛒' },
+{ id: 'Кафе и Доставка', icon: '☕' },
+{ id: 'ЖКХ и Связь', icon: '🏠' },
+{ id: 'Транспорт', icon: '🚕' },
+{ id: 'Здоровье и Аптека', icon: '💊' },
+{ id: 'Покупки и Дом', icon: '🛍️' },
+{ id: 'Развлечения', icon: '🎬' }
+];
+const INCOME_CATEGORIES = [
+{ id: 'Зарплата / Доход', icon: '💰' },
+{ id: 'Кэшбэк / Бонус', icon: '🎁' },
+{ id: 'Подработка', icon: '💼' }
+];
 const DEFAULT_DB = {
-version: 4,
-theme: 'light',
+version: 5,
+themeMode: 'auto', // 'auto' | 'light' | 'dark'
 activeUser: 'Вы',
+paydayMode: 'month_end',
+paydayDay: 10,
 googleClientId: '',
 accounts: [
-{ id: 'acc_1', name: 'Карта Мужа', initialBalance: -53350, balance: 68000, owner: 'Вы', icon: '💳', color: '#E0F2FE' },
-{ id: 'acc_2', name: 'Карта Жены', initialBalance: 53350, balance: 51400, owner: 'Супруга', icon: '💳', color: '#FCE7F3' },
-{ id: 'acc_3', name: 'Наличные', initialBalance: 14000, balance: 14000, owner: 'Общий', icon: '💵', color: '#DCFCE7' },
-{ id: 'acc_4', name: 'Сейф-Подушка', initialBalance: 195000, balance: 195000, owner: 'Общий', icon: '🛡️', color: '#CCFBF1' }
+{ id: 'acc_1', name: 'Карта Мужа', balance: 68000, owner: 'Вы', icon: '💳', color: '#E0F2FE', updatedAt: Date.now() },
+{ id: 'acc_2', name: 'Карта Жены', balance: 51400, owner: 'Супруга', icon: '💳', color: '#FCE7F3', updatedAt: Date.now() },
+{ id: 'acc_3', name: 'Наличные', balance: 14000, owner: 'Общий', icon: '💵', color: '#DCFCE7', updatedAt: Date.now() },
+{ id: 'acc_4', name: 'Сейф-Подушка', balance: 195000, owner: 'Общий', icon: '🛡️', color: '#CCFBF1', updatedAt: Date.now() }
 ],
 goals: [
-{ id: 'goal_1', name: 'Финансовая подушка (6 мес)', target: 360000, saved: 195000, linkedAccountId: 'acc_4', percent: 20, icon: '🛡️' },
-{ id: 'goal_2', name: 'Отпуск всей семьей', target: 160000, saved: 55000, linkedAccountId: 'acc_4', percent: 10, icon: '✈️' }
+{ id: 'goal_1', name: 'Финансовая подушка (6 мес)', target: 360000, saved: 195000, linkedAccountId: 'acc_4', percent: 20, icon: '🛡️', updatedAt: Date.now() },
+{ id: 'goal_2', name: 'Отпуск всей семьей', target: 160000, saved: 55000, linkedAccountId: 'acc_4', percent: 10, icon: '✈️', updatedAt: Date.now() }
 ],
 subscriptions: [
-{ id: 'sub_1', name: 'ЖКХ и Интернет', amount: 8500, day: 20, paidThisMonth: false },
-{ id: 'sub_2', name: 'Семейные подписки и связь', amount: 2400, day: 25, paidThisMonth: false }
+{ id: 'sub_1', name: 'ЖКХ и Интернет', amount: 8500, day: 20, accountId: 'acc_1', paidMonthKey: '', updatedAt: Date.now() },
+{ id: 'sub_2', name: 'Семейные подписки и связь', amount: 2400, day: 25, accountId: 'acc_2', paidMonthKey: '', updatedAt: Date.now() }
 ],
 limits: {
 'Продукты': 35000,
@@ -1296,19 +1420,31 @@ transactions: [
 ],
 deletedTxIds: [],
 notifications: [
-{ id: 1, title: '⚡ Family Finance Pro v4', text: 'Активны безопасный дневной лимит, QR-сканер ФНС, авто-разбор PDF с установкой лимитов и встроенный пин-пад.', time: 'Сейчас' }
+{ id: 1, title: '⚡ Family Finance Pro v5', text: 'Добавлены живой QR-сканер камеры, свайп-жесты по операциям, прогноз кассовых разрывов и сравнение с прошлым месяцем.', time: 'Сейчас' }
 ]
 };
-let state = JSON.parse(localStorage.getItem('family_finance_pro_v4')) || JSON.parse(localStorage.getItem('family_finance_pro_v3')) || DEFAULT_DB;
-let driveFileId = localStorage.getItem('gdrive_file_id_v3') || null;
+let state = JSON.parse(localStorage.getItem('family_finance_pro_v5'))
+|| JSON.parse(localStorage.getItem('family_finance_pro_v4'))
+|| JSON.parse(localStorage.getItem('family_finance_pro_v3'))
+|| DEFAULT_DB;
+if (!state.themeMode) state.themeMode = state.theme || 'auto';
+if (!state.paydayMode) state.paydayMode = 'month_end';
+if (!state.paydayDay) state.paydayDay = 10;
+let driveFileId = localStorage.getItem('gdrive_file_id_v5') || localStorage.getItem('gdrive_file_id_v3') || null;
 let googleAccessToken = null;
 let pendingSalaryWizard = null;
 let lastPdfSuggestedLimits = null;
+let qrStream = null;
+let qrAnimId = null;
 function haptic() {
 if (navigator.vibrate) navigator.vibrate(12);
 }
+function currentMonthKey() {
+const d = new Date();
+return ⁠${d.getFullYear()}-${d.getMonth() + 1}⁠;
+}
 function saveState(syncCloud = true) {
-localStorage.setItem('family_finance_pro_v4', JSON.stringify(state));
+localStorage.setItem('family_finance_pro_v5', JSON.stringify(state));
 renderAll();
 if (syncCloud && googleAccessToken && navigator.onLine) {
 smartSyncWithGoogleDrive();
@@ -1324,21 +1460,31 @@ t.innerText = msg;
 t.classList.add('show');
 setTimeout(() => t.classList.remove('show'), 2800);
 }
-// ==================== ТЕМА (LIGHT / OLED DARK) ====================
+// ==================== ДИНАМИЧЕСКАЯ ТЕМА (AUTO / LIGHT / OLED DARK) ====================
+const systemDarkMedia = window.matchMedia('(prefers-color-scheme: dark)');
 function applyTheme() {
-const theme = state.theme || 'light';
-document.documentElement.setAttribute('data-theme', theme);
-document.getElementById('themeIcon').innerText = theme === 'dark' ? '☀️' : '🌙';
-document.getElementById('metaThemeColor').setAttribute('content', theme === 'dark' ? '#090D16' : '#F3F6F8');
+const mode = state.themeMode || 'auto';
+const isDark = mode === 'dark' || (mode === 'auto' && systemDarkMedia.matches);
+document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+document.getElementById('themeIcon').innerText = mode === 'auto' ? '🌗' : (mode === 'dark' ? '🌙' : '☀️');
+document.getElementById('metaThemeColor').setAttribute('content', isDark ? '#000000' : '#F3F6F8');
 }
-function toggleTheme() {
-state.theme = state.theme === 'dark' ? 'light' : 'dark';
+systemDarkMedia.addEventListener('change', () => {
+if (state.themeMode === 'auto') applyTheme();
+});
+function cycleTheme() {
+const order = ['auto', 'light', 'dark'];
+const next = order[(order.indexOf(state.themeMode || 'auto') + 1) % order.length];
+state.themeMode = next;
 applyTheme();
 saveState(false);
+const names = { auto: 'Тема: Авто (как на iPhone)', light: 'Тема: Светлая', dark: 'Тема: OLED Темная' };
+showToast(names[next]);
 }
 // ==================== НАВИГАЦИЯ И МОДАЛКИ ====================
 function switchTab(tab) {
 haptic();
+if (tab !== 'advisor') stopLiveQR();
 document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
 document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
 document.getElementById('view-' + tab).classList.add('active');
@@ -1353,21 +1499,53 @@ state.activeUser = state.activeUser === 'Вы' ? 'Супруга' : 'Вы';
 saveState(false);
 showToast(⁠Активный автор: ${state.activeUser}⁠);
 }
-// ==================== ВЫЧИСЛЕНИЕ SAFE-TO-SPEND И ПРОГНОЗА ТЕМПА ====================
+// ==================== SAFE-TO-SPEND И ПРОГНОЗ КАССОВЫХ РАЗРЫВОВ ====================
 function calculateSafeToSpend() {
 const goalAccIds = new Set(state.goals.map(g => g.linkedAccountId));
 const liquidBalance = state.accounts
 .filter(a => !goalAccIds.has(a.id))
 .reduce((s, a) => s + Number(a.balance), 0);
+const mKey = currentMonthKey();
 const unpaidSubs = (state.subscriptions || [])
-.filter(s => !s.paidThisMonth)
+.filter(s => s.paidMonthKey !== mKey && !s.paidThisMonth)
 .reduce((s, item) => s + Number(item.amount), 0);
 const now = new Date();
+let daysRemaining = 1;
+let periodLabel = 'до конца месяца';
+if (state.paydayMode === 'custom_day') {
+const targetDay = Number(state.paydayDay) || 10;
+let targetDate = new Date(now.getFullYear(), now.getMonth(), targetDay);
+if (now.getDate() >= targetDay) {
+targetDate = new Date(now.getFullYear(), now.getMonth() + 1, targetDay);
+}
+daysRemaining = Math.max(1, Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24)));
+periodLabel = ⁠до зарплаты (${targetDay}-го)⁠;
+} else {
 const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-const daysRemaining = Math.max(1, daysInMonth - now.getDate() + 1);
+daysRemaining = Math.max(1, daysInMonth - now.getDate() + 1);
+}
+const cashGap = unpaidSubs > liquidBalance ? (unpaidSubs - liquidBalance) : 0;
 const availablePool = Math.max(0, liquidBalance - unpaidSubs);
 const dailySafe = Math.round(availablePool / daysRemaining);
-return { liquidBalance, unpaidSubs, daysRemaining, dailySafe };
+return { liquidBalance, unpaidSubs, daysRemaining, dailySafe, cashGap, periodLabel };
+}
+function openPaydayModal() {
+document.getElementById('paydayModeSelect').value = state.paydayMode || 'month_end';
+document.getElementById('paydayDayInput').value = state.paydayDay || 10;
+togglePaydayInput();
+openModal('modal-payday');
+}
+function togglePaydayInput() {
+const mode = document.getElementById('paydayModeSelect').value;
+document.getElementById('paydayDayBox').style.display = mode === 'custom_day' ? 'block' : 'none';
+}
+function submitPayday(e) {
+e.preventDefault();
+state.paydayMode = document.getElementById('paydayModeSelect').value;
+state.paydayDay = Math.min(31, Math.max(1, parseInt(document.getElementById('paydayDayInput').value) || 10));
+saveState();
+closeModal('modal-payday');
+showToast('✅ Период дневного лимита обновлен');
 }
 // ==================== ГЛАВНЫЙ РЕНДЕР ====================
 function renderAll() {
@@ -1376,54 +1554,88 @@ const isYou = state.activeUser === 'Вы';
 document.getElementById('avYou').classList.toggle('active-user', isYou);
 document.getElementById('avWife').classList.toggle('active-user', !isYou);
 document.getElementById('currentUserBadge').innerText = ⁠Автор: ${state.activeUser} ⇄⁠;
-// 1. Свободный и общий баланс + Safe-to-Spend
+if (state.googleClientId && !document.getElementById('googleClientIdInput').value) {
+document.getElementById('googleClientIdInput').value = state.googleClientId;
+}
+// 1. Общий баланс + Safe-to-Spend
 const totalBalance = state.accounts.reduce((s, a) => s + Number(a.balance), 0);
 document.getElementById('heroTotalBalance').innerText = formatMoney(totalBalance);
 const safe = calculateSafeToSpend();
-document.getElementById('safeSpendAmount').innerText = ⁠${formatMoney(safe.dailySafe)} / день⁠;
-document.getElementById('safeSpendSub').innerText = ⁠Свободно ${formatMoney(safe.liquidBalance)} на ${safe.daysRemaining} дн. (резерв ЖКХ: ${formatMoney(safe.unpaidSubs)})⁠;
+const safeValEl = document.getElementById('safeSpendAmount');
+safeValEl.innerText = safe.cashGap > 0 ? ⁠Дефицит -${formatMoney(safe.cashGap)}⁠ : ⁠${formatMoney(safe.dailySafe)} / день⁠;
+safeValEl.classList.toggle('danger', safe.cashGap > 0);
+document.getElementById('safeSpendSub').innerText = ⁠${safe.daysRemaining} дн. ${safe.periodLabel} · резерв ЖКХ: ${formatMoney(safe.unpaidSubs)}⁠;
 // 2. Счета
 document.getElementById('accountsStrip').innerHTML = state.accounts.map(acc => ⁠<div class="account-mini-card" onclick="openAccountModal('${acc.id}')"> <div class="acc-icon" style="background:${acc.color || '#E0F2FE'};">${acc.icon}</div> <div class="acc-name">${acc.name}</div> <div class="acc-bal">${formatMoney(acc.balance)}</div> <span class="acc-owner">${acc.owner}</span> </div>⁠).join('');
-// 3. Доходы, Расходы и Burn-Rate прогноз
+// 3. Доходы, Расходы, Сравнение с прошлым месяцем и Burn-Rate прогноз
 const now = new Date();
 const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 const currentDay = Math.max(1, now.getDate());
+const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 const monthTxs = state.transactions.filter(t => {
 const d = new Date(t.date);
 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 });
+const prevMonthTxs = state.transactions.filter(t => {
+const d = new Date(t.date);
+return d.getMonth() === prevMonthDate.getMonth() && d.getFullYear() === prevMonthDate.getFullYear();
+});
 const monthInc = monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
-const monthExp = monthTxs.filter(t => t.type === 'expense' && !t.category.includes('Перевод') && !t.category.includes('цель')).reduce((s, t) => s + Number(t.amount), 0);
+const monthExp = monthTxs.filter(t => t.type === 'expense' && !t.category.includes('Перевод')).reduce((s, t) => s + Number(t.amount), 0);
+const prevMonthExpToDate = prevMonthTxs
+.filter(t => t.type === 'expense' && !t.category.includes('Перевод') && new Date(t.date).getDate() <= currentDay)
+.reduce((s, t) => s + Number(t.amount), 0);
 document.getElementById('monthIncome').innerText = formatMoney(monthInc);
 document.getElementById('monthExpense').innerText = formatMoney(monthExp);
 const savingsRate = monthInc > 0 ? Math.max(0, Math.round(((monthInc - monthExp) / monthInc) * 100)) : 0;
-document.getElementById('savingsRateBadge').innerText = ⁠Норма сбережений: ${savingsRate}%⁠;
+document.getElementById('savingsRateBadge').innerText = ⁠Сбережения: ${savingsRate}%⁠;
 // Категории за месяц
 const catTotals = {};
 monthTxs.filter(t => t.type === 'expense').forEach(t => {
 const clean = t.category.replace(/^[^\s]+\s/, '');
 catTotals[clean] = (catTotals[clean] || 0) + Number(t.amount);
 });
-// Прогноз темпа трат + Проверка приближающихся регулярных платежей (за 2 дня)
-let warningMsg = '';
+// Умный радар: 1) Кассовый разрыв, 2) Ближайшие платежи за 2 дня, 3) Перерасход по темпу, 4) Сравнение с прошлым месяцем
+const mKey = currentMonthKey();
+let alertLevel = false;
+let adviceHtml = '';
+if (safe.cashGap > 0) {
+alertLevel = true;
+adviceHtml = ⁠🚨 <strong>Риск кассового разрыва:</strong> На свободных счетах не хватает <strong>${formatMoney(safe.cashGap)}</strong> для оплаты оставшихся обязательных платежей (${formatMoney(safe.unpaidSubs)}).⁠;
+}
+if (!adviceHtml) {
 (state.subscriptions || []).forEach(sub => {
-if (!sub.paidThisMonth && sub.day >= currentDay && (sub.day - currentDay) <= 2) {
-warningMsg = ⁠Через ${sub.day - currentDay} дн. (${sub.day}-го числа) оплата «${sub.name}» на сумму ${formatMoney(sub.amount)}. Средства уже зарезервированы.⁠;
+const isPaid = sub.paidMonthKey === mKey || sub.paidThisMonth;
+if (!isPaid && sub.day >= currentDay && (sub.day - currentDay) <= 2 && !adviceHtml) {
+alertLevel = true;
+adviceHtml = ⁠📅 <strong>Скоро списание:</strong> Через ${sub.day - currentDay} дн. (${sub.day}-го числа) платеж «${sub.name}» на ${formatMoney(sub.amount)}. Деньги уже зарезервированы.⁠;
 }
 });
+}
+if (!adviceHtml) {
 Object.entries(state.limits).forEach(([cat, lim]) => {
 const spent = catTotals[cat] || 0;
 const projected = Math.round((spent / currentDay) * daysInMonth);
-if (projected > lim && spent > 0 && !warningMsg) {
-warningMsg = ⁠К ${currentDay} числу в категории «${cat}» потрачено ${formatMoney(spent)}. При таком темпе к концу месяца набежит ${formatMoney(projected)} (перерасход +${formatMoney(projected - lim)}).⁠;
+const pct = Math.round((spent / lim) * 100);
+if (projected > lim && spent > 0 && !adviceHtml) {
+alertLevel = true;
+adviceHtml = ⁠⚠️ <strong>Темп трат:</strong> К ${currentDay} числу на «${cat}» ушло ${pct}% лимита (${formatMoney(spent)}). При таком темпе к концу месяца будет перерасход на <strong>+${formatMoney(projected - lim)}</strong>.⁠;
 }
 });
-const mentorEl = document.getElementById('mentorAdviceText');
-if (warningMsg) {
-mentorEl.innerHTML = ⁠⚠️ <strong>Радар аналитика:</strong> ${warningMsg}⁠;
-} else {
-mentorEl.innerHTML = ⁠✅ <strong>Темп в норме:</strong> Вы укладываетесь во все лимиты. Безопасный бюджет на сегодня — <strong>${formatMoney(safe.dailySafe)}</strong>.⁠;
 }
+if (!adviceHtml) {
+let cmpText = '';
+if (prevMonthExpToDate > 0) {
+const diffPct = Math.round(((monthExp - prevMonthExpToDate) / prevMonthExpToDate) * 100);
+cmpText = diffPct > 0
+? ⁠ Расходы на ${diffPct}% выше, чем к этому числу в прошлом месяце.⁠
+: ⁠ Вы тратите на ${Math.abs(diffPct)}% меньше, чем в прошлом месяце!⁠;
+}
+adviceHtml = ⁠✅ <strong>Бюджет под контролем:</strong> Безопасный лимит на сегодня — <strong>${formatMoney(safe.dailySafe)}</strong>.${cmpText}⁠;
+}
+document.getElementById('mentorCard').classList.toggle('alert', alertLevel);
+document.getElementById('mentorIcon').innerText = alertLevel ? '⚡' : '🧠';
+document.getElementById('mentorAdviceText').innerHTML = adviceHtml;
 // Полоски топ-2 категорий на главной
 document.getElementById('topCategoriesBars').innerHTML = Object.keys(state.limits).slice(0, 2).map(cat => {
 const spent = catTotals[cat] || 0;
@@ -1432,24 +1644,28 @@ const pct = Math.min(100, Math.round((spent / lim) * 100));
 const color = pct > 90 ? '#EF4444' : (pct > 70 ? '#F59E0B' : '#0F766E');
 return ⁠<div> <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:5px;"> <span>${cat}</span> <span style="color:${color};">${pct}%</span> </div> <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div> </div>⁠;
 }).join('');
-// 4. Списки транзакций (с кнопками быстрого редактирования ✎ и удаления ✕)
-const renderTx = (tx) => {
+// 4. Списки транзакций с iOS-свайпами влево
+const renderSwipeTx = (tx) => {
 const acc = state.accounts.find(a => a.id === tx.accountId);
 const isInc = tx.type === 'income';
 const dateStr = new Date(tx.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-return ⁠<div class="tx-item"> <div class="tx-left"> <div class="tx-icon">${isInc ? '💰' : '🛍️'}</div> <div style="min-width:0;"> <div class="tx-title">${tx.note || tx.category}</div> <div class="tx-meta"> <span>${dateStr}</span> <span class="tx-tag">${tx.category}</span> <span class="tx-tag">${acc ? acc.name : 'Счет'}</span> <span class="tx-tag">${tx.author || 'Вы'}</span> </div> </div> </div> <div class="tx-right"> <div class="tx-amount ${isInc ? 'inc' : 'exp'}"> ${isInc ? '+' : '-'}${formatMoney(tx.amount)} </div> <button class="tx-act-btn" onclick="editTransaction('${tx.id}')" title="Изменить">✎</button> <button class="tx-act-btn del" onclick="deleteTransaction('${tx.id}')" title="Удалить">✕</button> </div> </div>⁠;
+return ⁠<div class="swipe-container"> <div class="swipe-actions"> <button class="swipe-btn edit" onclick="editTransaction('${tx.id}')">✎<br>Изм.</button> <button class="swipe-btn del" onclick="deleteTransaction('${tx.id}')">✕<br>Удал.</button> </div> <div class="tx-item" data-swipe-row="1"> <div class="tx-left"> <div class="tx-icon">${isInc ? '💰' : '🛍️'}</div> <div style="min-width:0;"> <div class="tx-title">${tx.note || tx.category}</div> <div class="tx-meta"> <span>${dateStr}</span> <span class="tx-tag">${tx.category}</span> <span class="tx-tag">${acc ? acc.name : 'Счет'}</span> <span class="tx-tag">${tx.author || 'Вы'}</span> </div> </div> </div> <div class="tx-amount ${isInc ? 'inc' : 'exp'}"> ${isInc ? '+' : '-'}${formatMoney(tx.amount)} </div> </div> </div>⁠;
 };
-document.getElementById('recentTxList').innerHTML = state.transactions.slice(0, 6).map(renderTx).join('') || '<p style="font-size:13px; color:var(--text-muted);">Операций пока нет</p>';
-document.getElementById('fullTxList').innerHTML = state.transactions.map(renderTx).join('') || '<p style="font-size:13px; color:var(--text-muted);">Операций пока нет</p>';
-// 5. Цели (с кнопками «Изменить» и «+ Пополнить»)
+document.getElementById('recentTxList').innerHTML = state.transactions.slice(0, 6).map(renderSwipeTx).join('') || '<p style="font-size:13px; color:var(--text-muted);">Операций пока нет</p>';
+document.getElementById('fullTxList').innerHTML = state.transactions.map(renderSwipeTx).join('') || '<p style="font-size:13px; color:var(--text-muted);">Операций пока нет</p>';
+attachSwipeHandlers();
+// 5. Цели
 document.getElementById('goalsListContainer').innerHTML = state.goals.map(g => {
 const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
 const acc = state.accounts.find(a => a.id === g.linkedAccountId);
 return ⁠<div class="goal-card"> <div class="goal-top"> <div class="goal-icon">${g.icon || '🎯'}</div> <div class="goal-info"> <div class="goal-name">${g.name}</div> <div class="goal-amounts">${formatMoney(g.saved)} из ${formatMoney(g.target)}</div> </div> <div class="goal-pct">${pct}%</div> </div> <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:var(--accent-teal);"></div></div> <div class="goal-footer"> <span style="color:var(--text-secondary); font-weight:600;">🔗 ${acc ? acc.name : 'Счет'} (${g.percent}% с дохода)</span> <div style="display:flex; gap:6px;"> <button class="btn-text" onclick="openGoalModal('${g.id}')">Изменить</button> <button class="btn-text" style="background:var(--bg-subtle);" onclick="openGoalTopupModal('${g.id}')">+ Пополнить</button> </div> </div> </div>⁠;
 }).join('');
-// 6. Регулярные платежи и подписки
-document.getElementById('subscriptionsList').innerHTML = (state.subscriptions || []).map(sub => ⁠<div class="tx-item"> <div class="tx-left"> <div class="tx-icon">${sub.paidThisMonth ? '✅' : '🗓️'}</div> <div> <div class="tx-title">${sub.name}</div> <div class="tx-meta">Число оплаты: ${sub.day}-е каждого месяца</div> </div> </div> <div class="tx-right"> <strong style="font-size:14px;">${formatMoney(sub.amount)}</strong> <button class="chip-btn" onclick="toggleSubPaid('${sub.id}')">${sub.paidThisMonth ? 'Оплачено' : 'Оплатить'}</button> </div> </div>⁠).join('') || '<p style="font-size:13px; color:var(--text-muted);">Нет регулярных платежей</p>';
-// 7. Лимиты с прогнозом до конца месяца
+// 6. Регулярные платежи и подписки (с оплатой со счета и редактированием)
+document.getElementById('subscriptionsList').innerHTML = (state.subscriptions || []).map(sub => {
+const isPaid = sub.paidMonthKey === mKey || sub.paidThisMonth;
+return ⁠<div class="tx-item" style="border-bottom:1px solid var(--border-subtle);"> <div class="tx-left" onclick="openSubModal('${sub.id}')" style="cursor:pointer;"> <div class="tx-icon">${isPaid ? '✅' : '🗓️'}</div> <div> <div class="tx-title">${sub.name}</div> <div class="tx-meta">Оплата ${sub.day}-го числа · нажмите для правки</div> </div> </div> <div style="display:flex; align-items:center; gap:8px;"> <strong style="font-size:13.5px;">${formatMoney(sub.amount)}</strong> <button class="chip-btn" style="${isPaid ? 'opacity:0.6;' : 'background:var(--accent-teal); color:#fff; border:none;'}" onclick="paySubscription('${sub.id}')">${isPaid ? 'Оплачено' : 'Оплатить'}</button> </div> </div>⁠;
+}).join('') || '<p style="font-size:13px; color:var(--text-muted);">Нет регулярных платежей</p>';
+// 7. Лимиты с прогнозом
 document.getElementById('categoryLimitsList').innerHTML = Object.entries(state.limits).map(([cat, lim]) => {
 const spent = catTotals[cat] || 0;
 const pct = Math.min(100, Math.round((spent / lim) * 100));
@@ -1457,24 +1673,81 @@ const projected = Math.round((spent / currentDay) * daysInMonth);
 const over = spent > lim;
 return ⁠<div style="margin-bottom:14px;"> <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px;"> <span>${cat}</span> <span style="color:${over ? 'var(--expense-color)' : 'var(--text-primary)'};">${formatMoney(spent)} / ${formatMoney(lim)}</span> </div> <div class="progress-track" style="margin-bottom:4px;"> <div class="progress-fill" style="width:${pct}%; background:${over ? '#EF4444' : '#0F766E'};"></div> </div> <div style="font-size:11px; color:var(--text-secondary);"> Прогноз к концу месяца при текущем темпе: <strong>${formatMoney(projected)}</strong> </div> </div>⁠;
 }).join('');
+updateNetworkBadge();
 }
-// ==================== ОПЕРАЦИИ, ПИН-ПАД, РЕДАКТИРОВАНИЕ И СПЛИТ ====================
+// ==================== ЖЕСТЫ СВАЙПА (IOS SWIPE-TO-EDIT / DELETE) ====================
+function attachSwipeHandlers() {
+let activeRow = null;
+document.querySelectorAll('[data-swipe-row="1"]').forEach(row => {
+let startX = 0, currentX = 0, isSwiping = false;
+row.addEventListener('touchstart', e => {
+startX = e.touches[0].clientX;
+isSwiping = true;
+if (activeRow && activeRow !== row) {
+activeRow.style.transform = 'translateX(0px)';
+activeRow = null;
+}
+}, { passive: true });
+row.addEventListener('touchmove', e => {
+if (!isSwiping) return;
+const dx = e.touches[0].clientX - startX;
+if (dx < 0 && dx > -140) {
+currentX = dx;
+row.style.transition = 'none';
+row.style.transform = ⁠translateX(${dx}px)⁠;
+} else if (dx > 10 && activeRow === row) {
+currentX = 0;
+row.style.transform = 'translateX(0px)';
+}
+}, { passive: true });
+row.addEventListener('touchend', () => {
+isSwiping = false;
+row.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+if (currentX < -55) {
+row.style.transform = 'translateX(-128px)';
+activeRow = row;
+haptic();
+} else {
+row.style.transform = 'translateX(0px)';
+if (activeRow === row) activeRow = null;
+}
+currentX = 0;
+});
+});
+}
+// ==================== ОПЕРАЦИИ, ПИН-ПАД, ЧИПСЫ КАТЕГОРИЙ И СПЛИТ ====================
 function populateAccountSelects() {
 const html = state.accounts.map(a => ⁠<option value="${a.id}">${a.icon} ${a.name} (${formatMoney(a.balance)})</option>⁠).join('');
-['txAccountField', 'trFromAccount', 'trToAccount', 'goalAccountSelect', 'topupFromAccount'].forEach(id => {
+['txAccountField', 'trFromAccount', 'trToAccount', 'goalAccountSelect', 'topupFromAccount', 'subAccountSelect'].forEach(id => {
 const el = document.getElementById(id);
 if (el) el.innerHTML = html;
 });
 }
+function renderCategoryChips(type, selectedCat) {
+const list = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+const current = list.some(c => c.id === selectedCat) ? selectedCat : list[0].id;
+document.getElementById('txCategoryField').value = current;
+document.getElementById('categoryChipsBox').innerHTML = list.map(c => ⁠<button type="button" class="cat-chip ${c.id === current ? 'selected' : ''}" onclick="selectCategoryChip('${c.id}')"> ${c.icon} ${c.id} </button>⁠).join('');
+}
+function selectCategoryChip(catId) {
+haptic();
+document.getElementById('txCategoryField').value = catId;
+document.querySelectorAll('.cat-chip').forEach(btn => {
+btn.classList.toggle('selected', btn.innerText.includes(catId));
+});
+updateSplitPreview();
+}
 function openTxModal(type) {
 populateAccountSelects();
 document.getElementById('editTxIdField').value = '';
+document.getElementById('txDateOverride').value = '';
 document.getElementById('txModalHeaderTitle').innerText = 'Новая операция';
 setTxType(type);
 document.getElementById('txAmountField').value = '';
 document.getElementById('txNoteField').value = '';
 document.getElementById('splitSecondAmount').value = '';
 document.getElementById('splitFieldsContainer').style.display = 'none';
+document.getElementById('customPinPad').style.display = 'grid';
 openModal('modal-tx');
 }
 function editTransaction(txId) {
@@ -1483,44 +1756,58 @@ if (!tx) return;
 populateAccountSelects();
 document.getElementById('editTxIdField').value = tx.id;
 document.getElementById('txModalHeaderTitle').innerText = 'Изменить операцию';
-setTxType(tx.type);
+setTxType(tx.type, tx.category);
 document.getElementById('txAmountField').value = tx.amount;
 document.getElementById('txAccountField').value = tx.accountId;
-document.getElementById('txCategoryField').value = tx.category;
 document.getElementById('txNoteField').value = tx.note || '';
 document.getElementById('splitReceiptToggleBox').style.display = 'none';
+document.getElementById('customPinPad').style.display = 'none';
 openModal('modal-tx');
 }
-function setTxType(type) {
+function setTxType(type, forceCat = null) {
 document.getElementById('txTypeField').value = type;
 document.getElementById('seg-exp').classList.toggle('active', type === 'expense');
 document.getElementById('seg-inc').classList.toggle('active', type === 'income');
+renderCategoryChips(type, forceCat || document.getElementById('txCategoryField').value);
 const isEdit = Boolean(document.getElementById('editTxIdField').value);
 document.getElementById('splitReceiptToggleBox').style.display = (type === 'expense' && !isEdit) ? 'block' : 'none';
 }
 function togglePinPad() {
 const pad = document.getElementById('customPinPad');
-pad.style.display = pad.style.display === 'none' ? 'grid' : 'none';
+const inp = document.getElementById('txAmountField');
+const willShow = pad.style.display === 'none';
+pad.style.display = willShow ? 'grid' : 'none';
+inp.setAttribute('inputmode', willShow ? 'none' : 'decimal');
 }
 function pinPress(key) {
 haptic();
 const inp = document.getElementById('txAmountField');
 let val = String(inp.value || '');
-if (key === 'back') {
-inp.value = val.slice(0, -1);
-} else {
-inp.value = val + key;
-}
+inp.value = key === 'back' ? val.slice(0, -1) : (val + key);
+updateSplitPreview();
 }
 function addQuickAmount(val) {
 haptic();
 const inp = document.getElementById('txAmountField');
-const cur = parseFloat(inp.value) || 0;
-inp.value = cur + val;
+inp.value = (parseFloat(inp.value) || 0) + val;
+updateSplitPreview();
 }
 function toggleSplitFields() {
 const box = document.getElementById('splitFieldsContainer');
 box.style.display = box.style.display === 'none' ? 'block' : 'none';
+updateSplitPreview();
+}
+function updateSplitPreview() {
+const total = parseFloat(document.getElementById('txAmountField').value) || 0;
+const second = parseFloat(document.getElementById('splitSecondAmount').value) || 0;
+const cat1 = document.getElementById('txCategoryField').value;
+const cat2 = document.getElementById('splitSecondCategory').value;
+const el = document.getElementById('splitLivePreview');
+if (total > 0 && second > 0 && second < total) {
+el.innerText = ⁠Разбивка: ${cat1} (${formatMoney(total - second)}) + ${cat2} (${formatMoney(second)})⁠;
+} else {
+el.innerText = 'Укажите сумму 2-й части — остаток пойдет в основную категорию';
+}
 }
 function submitTransaction(e) {
 e.preventDefault();
@@ -1530,6 +1817,7 @@ const totalAmount = parseFloat(document.getElementById('txAmountField').value);
 const accountId = document.getElementById('txAccountField').value;
 const category = document.getElementById('txCategoryField').value;
 const note = document.getElementById('txNoteField').value.trim();
+const dateOverride = document.getElementById('txDateOverride').value;
 if (!totalAmount || totalAmount <= 0) return;
 if (editId) {
 const existing = state.transactions.find(t => String(t.id) === String(editId));
@@ -1551,10 +1839,9 @@ return;
 }
 const splitAmt = parseFloat(document.getElementById('splitSecondAmount').value) || 0;
 const splitCat = document.getElementById('splitSecondCategory').value;
+const txDate = dateOverride || new Date().toISOString();
 const acc = state.accounts.find(a => a.id === accountId);
-if (acc) {
-acc.balance += (type === 'income' ? totalAmount : -totalAmount);
-}
+if (acc) acc.balance += (type === 'income' ? totalAmount : -totalAmount);
 if (type === 'expense' && splitAmt > 0 && splitAmt < totalAmount) {
 const firstAmt = totalAmount - splitAmt;
 state.transactions.unshift({
@@ -1565,7 +1852,7 @@ category,
 accountId,
 note: note ? ⁠${note} (часть 1)⁠ : category,
 author: state.activeUser,
-date: new Date().toISOString()
+date: txDate
 });
 state.transactions.unshift({
 id: 'tx' + Date.now() + '2',
@@ -1575,18 +1862,18 @@ category: splitCat,
 accountId,
 note: note ? ⁠${note} (часть 2)⁠ : splitCat,
 author: state.activeUser,
-date: new Date().toISOString()
+date: txDate
 });
 } else {
 state.transactions.unshift({
 id: 'tx' + Date.now(),
-type: 'expense' === type ? 'expense' : 'income',
+type,
 amount: totalAmount,
 category,
 accountId,
 note,
 author: state.activeUser,
-date: new Date().toISOString()
+date: txDate
 });
 }
 saveState();
@@ -1601,8 +1888,10 @@ function deleteTransaction(txId) {
 const tx = state.transactions.find(t => String(t.id) === String(txId));
 if (!tx) return;
 const acc = state.accounts.find(a => a.id === tx.accountId);
-if (acc) {
-acc.balance += (tx.type === 'income' ? -tx.amount : tx.amount);
+if (acc) acc.balance += (tx.type === 'income' ? -tx.amount : tx.amount);
+if (tx.toAccountId) {
+const toAcc = state.accounts.find(a => a.id === tx.toAccountId);
+if (toAcc && toAcc.id !== tx.accountId) toAcc.balance -= tx.amount;
 }
 state.transactions = state.transactions.filter(t => String(t.id) !== String(txId));
 if (!state.deletedTxIds) state.deletedTxIds = [];
@@ -1610,24 +1899,28 @@ state.deletedTxIds.push(String(txId));
 saveState();
 showToast('🗑️ Операция удалена, баланс пересчитан');
 }
-// ==================== АВТО-РАСПРЕДЕЛЕНИЕ ЗАРПЛАТЫ В 1 КЛИК ====================
+// ==================== ИНТЕРАКТИВНЫЙ ЧЕК-ЛИСТ РАСПРЕДЕЛЕНИЯ ЗАРПЛАТЫ ====================
 function openSalaryWizard(incomeAmount, sourceAccId) {
 pendingSalaryWizard = { incomeAmount, sourceAccId };
-document.getElementById('wizardSubtitle').innerText = ⁠Вы внесли доход ${formatMoney(incomeAmount)}. Наставник рассчитал переводы по вашим целям:⁠;
-const listHtml = state.goals.map(g => {
+document.getElementById('wizardSubtitle').innerText = ⁠Вы внесли доход ${formatMoney(incomeAmount)}. Отметьте цели для перевода в 1 клик:⁠;
+document.getElementById('wizardAllocationsList').innerHTML = state.goals.map(g => {
 const sum = Math.round(incomeAmount * ((g.percent || 10) / 100));
-return ⁠<div style="display:flex; justify-content:space-between; padding:10px 12px; background:var(--bg-subtle); border-radius:12px; margin-bottom:8px; font-size:13.5px;"> <span>${g.icon || '🎯'} <strong>${g.name}</strong> (${g.percent}%)</span> <strong style="color:var(--accent-teal);">${formatMoney(sum)}</strong> </div>⁠;
+return ⁠<label style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:var(--bg-subtle); border-radius:13px; margin-bottom:8px; cursor:pointer;"> <div style="display:flex; align-items:center; gap:8px; flex:1;"> <input type="checkbox" class="wiz-check" data-goal-id="${g.id}" checked style="width:18px; height:18px; accent-color:var(--accent-teal);"> <span style="font-size:13px; font-weight:700;">${g.icon || '🎯'} ${g.name} (${g.percent}%)</span> </div> <input type="number" class="wiz-amt form-input" data-goal-id="${g.id}" value="${sum}" style="width:105px; padding:6px 8px; font-size:13.5px; text-align:right;"> </label>⁠;
 }).join('');
-document.getElementById('wizardAllocationsList').innerHTML = listHtml;
 openModal('modal-salary-wizard');
 }
 function executeSalaryAllocation() {
 if (!pendingSalaryWizard) return;
-const { incomeAmount, sourceAccId } = pendingSalaryWizard;
+const { sourceAccId } = pendingSalaryWizard;
 const fromAcc = state.accounts.find(a => a.id === sourceAccId);
-state.goals.forEach(g => {
-const sum = Math.round(incomeAmount * ((g.percent || 10) / 100));
-if (sum > 0) {
+let movedCount = 0;
+document.querySelectorAll('.wiz-check:checked').forEach(chk => {
+const gId = chk.getAttribute('data-goal-id');
+const amtInput = document.querySelector(⁠.wiz-amt[data-goal-id="${gId}"]⁠);
+const sum = parseFloat(amtInput ? amtInput.value : 0) || 0;
+const g = state.goals.find(x => x.id === gId);
+if (g && sum > 0) {
+movedCount++;
 g.saved += sum;
 const toAcc = state.accounts.find(a => a.id === g.linkedAccountId);
 if (fromAcc && toAcc && fromAcc.id !== toAcc.id) {
@@ -1650,9 +1943,77 @@ date: new Date().toISOString()
 pendingSalaryWizard = null;
 saveState();
 closeModal('modal-salary-wizard');
-showToast('⚡ Доход распределен по целям!');
+if (movedCount > 0) showToast(⁠⚡ Распределено по ${movedCount} целям!⁠);
 }
-// ==================== МГНОВЕННЫЙ QR-СКАНЕР ФНС РФ + OCR ====================
+// ==================== ЖИВОЙ QR-СКАНЕР ФНС РФ (0.2 СЕК) + ФОТО/OCR ====================
+function parseFnsQrString(data) {
+const sumMatch = data.match(/s=([0-9.]+)/i);
+if (!sumMatch) return null;
+const amount = parseFloat(sumMatch[1]);
+let parsedDate = '';
+const tMatch = data.match(/t=(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/i);
+if (tMatch) {
+parsedDate = new Date(⁠${tMatch[1]}-${tMatch[2]}-${tMatch[3]}T${tMatch[4]}:${tMatch[5]}:00⁠).toISOString();
+}
+return { amount, parsedDate };
+}
+async function toggleLiveQR() {
+if (qrStream) {
+stopLiveQR();
+return;
+}
+const out = document.getElementById('receiptScanResult');
+try {
+qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+const video = document.getElementById('qrVideo');
+video.srcObject = qrStream;
+await video.play();
+document.getElementById('qrVideoWrap').style.display = 'block';
+document.getElementById('liveQrBtn').innerText = '⏹ Остановить камеру';
+scanLiveFrame();
+} catch (err) {
+out.innerHTML = ⁠<div style="padding:12px; background:var(--bg-subtle); border-radius:13px; font-size:12.5px;">Камера недоступна в этом режиме — воспользуйтесь кнопкой «🖼️ Фото чека / OCR» справа.</div>⁠;
+}
+}
+function stopLiveQR() {
+if (qrAnimId) cancelAnimationFrame(qrAnimId);
+if (qrStream) {
+qrStream.getTracks().forEach(t => t.stop());
+qrStream = null;
+}
+document.getElementById('qrVideoWrap').style.display = 'none';
+document.getElementById('liveQrBtn').innerText = '📷 Живой QR-сканер';
+}
+function scanLiveFrame() {
+const video = document.getElementById('qrVideo');
+if (!qrStream || video.readyState !== video.HAVE_ENOUGH_DATA) {
+if (qrStream) qrAnimId = requestAnimationFrame(scanLiveFrame);
+return;
+}
+const canvas = document.getElementById('qrCanvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+canvas.width = video.videoWidth;
+canvas.height = video.videoHeight;
+ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+if (window.jsQR) {
+const code = jsQR(imgData.data, imgData.width, imgData.height);
+if (code && code.data) {
+const fns = parseFnsQrString(code.data);
+if (fns) {
+stopLiveQR();
+haptic();
+showQrSuccessBox(fns.amount, fns.parsedDate, '⚡ QR-код ФНС считан мгновенно!');
+return;
+}
+}
+}
+qrAnimId = requestAnimationFrame(scanLiveFrame);
+}
+function showQrSuccessBox(amount, parsedDate, title) {
+const dateBadge = parsedDate ? ⁠ (${new Date(parsedDate).toLocaleDateString('ru-RU')})⁠ : '';
+document.getElementById('receiptScanResult').innerHTML = ⁠<div style="padding:14px; background:rgba(16,185,129,0.12); border:1px solid var(--income-color); border-radius:16px;"> <div style="font-weight:800; color:var(--income-color); margin-bottom:5px;">${title}</div> <div style="font-size:13.5px; margin-bottom:10px;">Точная сумма: <strong>${formatMoney(amount)}</strong>${dateBadge}</div> <button class="btn-primary" style="padding:10px;" onclick="prefillTxFromScan(${amount}, 'Продукты', 'Покупка по QR-чеку', '${parsedDate || ''}')"> Внести (или разделить чек ✂️) </button> </div>⁠;
+}
 async function handleSmartReceipt(event) {
 const file = event.target.files[0];
 if (!file) return;
@@ -1662,7 +2023,7 @@ const img = new Image();
 img.src = URL.createObjectURL(file);
 await new Promise(r => img.onload = r);
 const canvas = document.getElementById('qrCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
 canvas.width = img.width;
 canvas.height = img.height;
 ctx.drawImage(img, 0, 0);
@@ -1670,10 +2031,9 @@ const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 if (window.jsQR) {
 const code = jsQR(imageData.data, imageData.width, imageData.height);
 if (code && code.data) {
-const sumMatch = code.data.match(/s=([0-9.]+)/i);
-if (sumMatch) {
-const qrAmount = parseFloat(sumMatch[1]);
-out.innerHTML = ⁠<div style="padding:14px; background:rgba(16,185,129,0.12); border:1px solid var(--income-color); border-radius:16px;"> <div style="font-weight:800; color:var(--income-color); margin-bottom:6px;">⚡ QR-код ФНС считан за 0.2 сек!</div> <div style="font-size:13.5px; margin-bottom:10px;">Точная сумма чека: <strong>${formatMoney(qrAmount)}</strong></div> <button class="btn-primary" style="padding:10px;" onclick="prefillTxFromScan(${qrAmount}, 'Продукты', 'Покупка по QR-чеку')">Внести и при желании разделить чек</button> </div>⁠;
+const fns = parseFnsQrString(code.data);
+if (fns) {
+showQrSuccessBox(fns.amount, fns.parsedDate, '⚡ QR-код ФНС считан с фото!');
 return;
 }
 }
@@ -1688,17 +2048,19 @@ const matches = text.match(/\d+[.,]\d{2}/g);
 if (matches) {
 detected = Math.max(...matches.map(n => parseFloat(n.replace(',', '.'))));
 }
-out.innerHTML = ⁠<div style="padding:14px; background:var(--bg-subtle); border-radius:16px;"> <div style="font-weight:800; margin-bottom:6px;">📸 Текст чека распознан</div> <div style="font-size:13px; margin-bottom:10px;">Сумма: <strong>${detected ? formatMoney(detected) : 'укажите вручную'}</strong></div> <button class="btn-primary" style="padding:10px;" onclick="prefillTxFromScan(${detected || 0}, 'Продукты', 'Чек (Фото)')">Оформить расход</button> </div>⁠;
+out.innerHTML = ⁠<div style="padding:14px; background:var(--bg-subtle); border-radius:16px;"> <div style="font-weight:800; margin-bottom:6px;">📸 Текст чека распознан</div> <div style="font-size:13px; margin-bottom:10px;">Сумма: <strong>${detected ? formatMoney(detected) : 'укажите вручную'}</strong></div> <button class="btn-primary" style="padding:10px;" onclick="prefillTxFromScan(${detected || 0}, 'Продукты', 'Чек (Фото)', '')">Оформить расход</button> </div>⁠;
 } catch (e) {
 out.innerHTML = ⁠<div style="font-size:12.5px; color:var(--expense-color);">Не удалось считать чек.</div>⁠;
 }
 }
-function prefillTxFromScan(amount, cat, note) {
+function prefillTxFromScan(amount, cat, note, dateIso) {
 openTxModal('expense');
 if (amount > 0) document.getElementById('txAmountField').value = amount;
 document.getElementById('txNoteField').value = note;
+if (dateIso) document.getElementById('txDateOverride').value = dateIso;
+selectCategoryChip(cat);
 }
-// ==================== СЧЕТА, ЦЕЛИ, ПОПОЛНЕНИЕ ЦЕЛЕЙ, ПОДПИСКИ ====================
+// ==================== СЧЕТА, ЦЕЛИ, ПОДПИСКИ, ЛИМИТЫ ====================
 function openTransferModal() { populateAccountSelects(); openModal('modal-transfer'); }
 function submitTransfer(e) {
 e.preventDefault();
@@ -1742,9 +2104,9 @@ const owner = document.getElementById('accOwnerInput').value;
 const icon = document.getElementById('accIconInput').value;
 if (id) {
 const a = state.accounts.find(x => x.id === id);
-if (a) Object.assign(a, { name, balance, owner, icon });
+if (a) Object.assign(a, { name, balance, owner, icon, updatedAt: Date.now() });
 } else {
-state.accounts.push({ id: 'acc_' + Date.now(), name, initialBalance: balance, balance, owner, icon, color: '#E0F2FE' });
+state.accounts.push({ id: 'acc_' + Date.now(), name, balance, owner, icon, color: '#E0F2FE', updatedAt: Date.now() });
 }
 saveState(); closeModal('modal-account'); showToast('✅ Счет сохранен');
 }
@@ -1774,9 +2136,9 @@ const linkedAccountId = document.getElementById('goalAccountSelect').value;
 const percent = parseInt(document.getElementById('goalPercentInput').value) || 10;
 if (id) {
 const g = state.goals.find(x => x.id === id);
-if (g) Object.assign(g, { name, target, saved, linkedAccountId, percent });
+if (g) Object.assign(g, { name, target, saved, linkedAccountId, percent, updatedAt: Date.now() });
 } else {
-state.goals.push({ id: 'goal_' + Date.now(), name, target, saved, linkedAccountId, percent, icon: '🎯' });
+state.goals.push({ id: 'goal_' + Date.now(), name, target, saved, linkedAccountId, percent, icon: '🎯', updatedAt: Date.now() });
 }
 saveState(); closeModal('modal-goal'); showToast('✅ Цель сохранена');
 }
@@ -1823,20 +2185,69 @@ saveState();
 closeModal('modal-goal-topup');
 showToast(⁠🎯 +${formatMoney(amt)} отложено в цель!⁠);
 }
-function openSubModal() { openModal('modal-sub'); }
+// Регулярные платежи (добавление, редактирование, удаление и реальная оплата со счета)
+function openSubModal(subId = null) {
+populateAccountSelects();
+const sub = (state.subscriptions || []).find(s => s.id === subId);
+document.getElementById('subModalTitle').innerText = sub ? 'Изменить платеж' : 'Новый регулярный платеж';
+document.getElementById('editSubId').value = sub ? sub.id : '';
+document.getElementById('subNameInput').value = sub ? sub.name : '';
+document.getElementById('subAmountInput').value = sub ? sub.amount : '';
+document.getElementById('subDayInput').value = sub ? sub.day : 25;
+if (sub && sub.accountId) document.getElementById('subAccountSelect').value = sub.accountId;
+document.getElementById('deleteSubBtn').style.display = sub ? 'block' : 'none';
+openModal('modal-sub');
+}
 function submitSub(e) {
 e.preventDefault();
+const id = document.getElementById('editSubId').value;
 const name = document.getElementById('subNameInput').value.trim();
 const amount = parseFloat(document.getElementById('subAmountInput').value);
 const day = parseInt(document.getElementById('subDayInput').value) || 25;
+const accountId = document.getElementById('subAccountSelect').value;
 if (!state.subscriptions) state.subscriptions = [];
-state.subscriptions.push({ id: 'sub_' + Date.now(), name, amount, day, paidThisMonth: false });
-saveState(); closeModal('modal-sub'); showToast('📅 Платеж добавлен в резерв');
+if (id) {
+const sub = state.subscriptions.find(s => s.id === id);
+if (sub) Object.assign(sub, { name, amount, day, accountId, updatedAt: Date.now() });
+} else {
+state.subscriptions.push({ id: 'sub_' + Date.now(), name, amount, day, accountId, paidMonthKey: '', updatedAt: Date.now() });
 }
-function toggleSubPaid(id) {
+saveState(); closeModal('modal-sub'); showToast('📅 Регулярный платеж сохранен');
+}
+function deleteCurrentSub() {
+const id = document.getElementById('editSubId').value;
+state.subscriptions = (state.subscriptions || []).filter(s => s.id !== id);
+saveState(); closeModal('modal-sub'); showToast('🗑️ Платеж удален');
+}
+function paySubscription(id) {
 const sub = (state.subscriptions || []).find(s => s.id === id);
-if (sub) sub.paidThisMonth = !sub.paidThisMonth;
+if (!sub) return;
+const mKey = currentMonthKey();
+if (sub.paidMonthKey === mKey || sub.paidThisMonth) {
+sub.paidMonthKey = '';
+sub.paidThisMonth = false;
 saveState();
+showToast('Отметка оплаты снята');
+return;
+}
+sub.paidMonthKey = mKey;
+sub.paidThisMonth = true;
+const acc = state.accounts.find(a => a.id === sub.accountId) || state.accounts[0];
+if (acc) {
+acc.balance -= Number(sub.amount);
+state.transactions.unshift({
+id: 'tx_sub_' + Date.now(),
+type: 'expense',
+amount: Number(sub.amount),
+category: 'ЖКХ и Связь',
+accountId: acc.id,
+note: ⁠Оплата: ${sub.name}⁠,
+author: state.activeUser,
+date: new Date().toISOString()
+});
+}
+saveState();
+showToast(⁠✅ Оплачено ${formatMoney(sub.amount)} с «${acc ? acc.name : 'счета'}»⁠);
 }
 function openLimitModal() {
 Object.entries(state.limits).forEach(([k, v]) => {
@@ -1858,12 +2269,12 @@ document.getElementById('notifBadge').classList.remove('active');
 document.getElementById('notificationsContainer').innerHTML = (state.notifications || []).map(n => ⁠<div style="padding:12px; background:var(--bg-subtle); border-radius:14px; margin-bottom:8px;"> <div style="font-size:13px; font-weight:800; margin-bottom:3px;">${n.title}</div> <div style="font-size:12.5px; color:var(--text-secondary);">${n.text}</div> </div>⁠).join('');
 openModal('modal-notifs');
 }
-// ==================== ПОЛНЫЙ РАЗБОР БАНКОВСКОЙ ВЫПИСКИ PDF С АВТО-ЛИМИТАМИ ====================
+// ==================== РАЗБОР БАНКОВСКОЙ ВЫПИСКИ PDF ====================
 async function handlePdfStatement(event) {
 const file = event.target.files[0];
 if (!file) return;
 const out = document.getElementById('pdfAnalysisResult');
-out.innerHTML = ⁠<div style="padding:12px; background:var(--bg-subtle); border-radius:13px; font-size:13px; font-weight:600;">⏳ Читаю PDF-выписку и классифицирую расходы по категориям...</div>⁠;
+out.innerHTML = ⁠<div style="padding:12px; background:var(--bg-subtle); border-radius:13px; font-size:13px; font-weight:600;">⏳ Читаю PDF-выписку и классифицирую расходы...</div>⁠;
 try {
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const buf = await file.arrayBuffer();
@@ -1900,7 +2311,7 @@ const rowsHtml = Object.entries(stats)
 .filter(([_, v]) => v > 0)
 .map(([k, v]) => ⁠<div style="display:flex; justify-content:space-between; font-size:12.5px; padding:3px 0;"><span>${k}:</span><strong>${formatMoney(v)}</strong></div>⁠)
 .join('');
-out.innerHTML = ⁠<div style="padding:15px; background:var(--bg-subtle); border-radius:16px;"> <div style="font-weight:800; font-size:13.5px; margin-bottom:8px;">📊 Выписка разобрана (${pdf.numPages} стр.)</div> ${rowsHtml || '<div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">Текст выписки проанализирован. Рекомендуем сократить гибкие траты на 15% для ускорения накоплений.</div>'} <button type="button" class="btn-primary" style="margin-top:10px; padding:10px;" onclick="applyPdfSuggestedLimits()"> 🎯 Применить умные лимиты (с экономией 15%) </button> </div>⁠;
+out.innerHTML = ⁠<div style="padding:15px; background:var(--bg-subtle); border-radius:16px;"> <div style="font-weight:800; font-size:13.5px; margin-bottom:8px;">📊 Выписка разобрана (${pdf.numPages} стр.)</div> ${rowsHtml || '<div style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">Текст выписки проанализирован. Рекомендуем сократить гибкие траты на 15%.</div>'} <button type="button" class="btn-primary" style="margin-top:10px; padding:10px;" onclick="applyPdfSuggestedLimits()"> 🎯 Применить умные лимиты (с экономией 15%) </button> </div>⁠;
 } catch (e) {
 out.innerHTML = ⁠<div style="font-size:12.5px; color:var(--expense-color);">Ошибка чтения PDF.</div>⁠;
 }
@@ -1911,19 +2322,45 @@ state.limits = { ...state.limits, ...lastPdfSuggestedLimits };
 saveState();
 showToast('🎯 Умные лимиты из выписки применены!');
 }
-// ==================== CONFLICT-FREE SMART MERGE (С ПЕРЕСЧЕТОМ СЧЕТОВ И ЦЕЛЕЙ) ====================
+// ==================== ПОЛНОЕ CONFLICT-FREE СЛИЯНИЕ (SMART MERGE v5) ====================
+function mergeById(localArr = [], remoteArr = []) {
+const map = new Map();
+localArr.forEach(item => map.set(item.id, item));
+remoteArr.forEach(rItem => {
+const existing = map.get(rItem.id);
+if (!existing || (rItem.updatedAt || 0) > (existing.updatedAt || 0)) {
+map.set(rItem.id, rItem);
+}
+});
+return Array.from(map.values());
+}
 function mergeStates(localDb, remoteDb) {
 if (!remoteDb || !remoteDb.transactions) return localDb;
-const deletedSet = new Set([...(localDb.deletedTxIds || []), ...(remoteDb.deletedTxIds || [])]);
+// 1. Объединяем новые счета, цели и подписки с обоих телефонов
+const localAccIds = new Set(localDb.accounts.map(a => a.id));
+(remoteDb.accounts || []).forEach(rAcc => {
+if (!localAccIds.has(rAcc.id)) localDb.accounts.push(rAcc);
+});
+localDb.goals = mergeById(localDb.goals, remoteDb.goals);
+localDb.subscriptions = mergeById(localDb.subscriptions, remoteDb.subscriptions);
+const localDeleted = new Set(localDb.deletedTxIds || []);
+const remoteDeleted = new Set(remoteDb.deletedTxIds || []);
+const allDeleted = new Set([...localDeleted, ...remoteDeleted]);
+// 2. Откатываем баланс для транзакций, которые были удалены на втором устройстве
+localDb.transactions.forEach(lTx => {
+const idStr = String(lTx.id);
+if (remoteDeleted.has(idStr) && !localDeleted.has(idStr)) {
+const acc = localDb.accounts.find(a => a.id === lTx.accountId);
+if (acc) acc.balance += (lTx.type === 'income' ? -Number(lTx.amount) : Number(lTx.amount));
+}
+});
+// 3. Применяем дельту новых транзакций со второго устройства
 const existingLocalIds = new Set(localDb.transactions.map(t => String(t.id)));
-const txMap = new Map();
 remoteDb.transactions.forEach(rTx => {
 const idStr = String(rTx.id);
-if (!deletedSet.has(idStr) && !existingLocalIds.has(idStr)) {
+if (!allDeleted.has(idStr) && !existingLocalIds.has(idStr)) {
 const acc = localDb.accounts.find(a => a.id === rTx.accountId);
-if (acc) {
-acc.balance += (rTx.type === 'income' ? Number(rTx.amount) : -Number(rTx.amount));
-}
+if (acc) acc.balance += (rTx.type === 'income' ? Number(rTx.amount) : -Number(rTx.amount));
 if (rTx.toAccountId) {
 const toAcc = localDb.accounts.find(a => a.id === rTx.toAccountId);
 if (toAcc && toAcc.id !== rTx.accountId) toAcc.balance += Number(rTx.amount);
@@ -1932,16 +2369,36 @@ if (linkedGoal) linkedGoal.saved += Number(rTx.amount);
 }
 }
 });
+// 4. Собираем единый журнал без дублей
+const txMap = new Map();
 [...remoteDb.transactions, ...localDb.transactions].forEach(tx => {
 const idStr = String(tx.id);
-if (!deletedSet.has(idStr) && !txMap.has(idStr)) {
-txMap.set(idStr, tx);
-}
+if (!allDeleted.has(idStr) && !txMap.has(idStr)) txMap.set(idStr, tx);
 });
 localDb.transactions = Array.from(txMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
-localDb.deletedTxIds = Array.from(deletedSet);
+localDb.deletedTxIds = Array.from(allDeleted);
 return localDb;
 }
+function updateNetworkBadge() {
+const pill = document.getElementById('syncPill');
+const txt = document.getElementById('syncText');
+if (!navigator.onLine) {
+pill.className = 'sync-pill';
+txt.innerText = 'Офлайн';
+} else if (googleAccessToken) {
+pill.className = 'sync-pill online';
+txt.innerText = 'Синхр.';
+} else {
+pill.className = 'sync-pill online';
+txt.innerText = 'Локально';
+}
+}
+window.addEventListener('online', () => {
+updateNetworkBadge();
+if (googleAccessToken) smartSyncWithGoogleDrive();
+showToast('🌐 Сеть восстановлена');
+});
+window.addEventListener('offline', updateNetworkBadge);
 function triggerGoogleSync() {
 if (googleAccessToken) smartSyncWithGoogleDrive();
 else switchTab('settings');
@@ -1977,6 +2434,7 @@ headers: { Authorization: ⁠Bearer ${googleAccessToken}⁠ }
 const list = await q.json();
 if (list.files && list.files.length > 0) {
 driveFileId = list.files[0].id;
+localStorage.setItem('gdrive_file_id_v5', driveFileId);
 const r = await fetch(⁠https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media⁠, {
 headers: { Authorization: ⁠Bearer ${googleAccessToken}⁠ }
 });
@@ -1995,14 +2453,17 @@ headers: { Authorization: ⁠Bearer ${googleAccessToken}⁠ },
 body: form
 });
 const up = await res.json();
-if (up.id) driveFileId = up.id;
+if (up.id) {
+driveFileId = up.id;
+localStorage.setItem('gdrive_file_id_v5', driveFileId);
+}
 saveState(false);
-pill.className = 'sync-pill online';
-document.getElementById('syncText').innerText = 'Синхр.';
+document.getElementById('googleSyncDetails').innerText = ⁠Синхронизировано: ${new Date().toLocaleTimeString('ru-RU')}⁠;
 showToast('☁️ Базы семьи и балансы счетов объединены!');
 } catch (e) {
-pill.className = 'sync-pill';
-document.getElementById('syncText').innerText = 'Офлайн';
+showToast('⚠️ Ошибка синхронизации с Drive');
+} finally {
+updateNetworkBadge();
 }
 }
 function exportDatabaseFile() {
@@ -2022,7 +2483,7 @@ try {
 const remote = JSON.parse(ev.target.result);
 state = mergeStates(state, remote);
 saveState(false);
-showToast('📥 Операции супруги и балансы счетов объединены!');
+showToast('📥 Операции, счета и цели супруги объединены!');
 } catch (err) {
 showToast('⚠️ Ошибка чтения файла');
 }
